@@ -1,0 +1,13 @@
+node_modules/
+.DS_Store
+
+# Local IDE / agent state
+.claude/
+.codex/
+project.private.config.json
+
+# Logs and build outputs
+*.log
+dist/
+build/
+miniprogram_npm/

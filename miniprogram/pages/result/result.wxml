@@ -1,0 +1,70 @@
+<view class="page result-page">
+  <block wx:if="{{empty}}">
+    <view class="panel empty">
+      <text class="empty-title">暂无练习结果</text>
+      <text class="empty-text">先完成一次音准检测，再查看结果。</text>
+      <button class="primary-button" bindtap="practiceAgain">开始检测</button>
+    </view>
+  </block>
+
+  <block wx:else>
+    <view class="score-panel">
+      <text class="score">{{session.totalScore}}</text>
+      <text class="score-label">综合评分</text>
+    </view>
+
+    <view class="panel result-grid">
+      <view class="result-item full">
+        <text class="result-value">{{targetText}}</text>
+        <text class="result-label">目标音</text>
+      </view>
+      <view class="result-item full">
+        <text class="result-value">{{detectedSummaryText}}</text>
+        <text class="result-label">主要检测到</text>
+      </view>
+      <view class="result-item">
+        <text class="result-value">{{avgCentText}}</text>
+        <text class="result-label">平均偏差</text>
+      </view>
+      <view class="result-item">
+        <text class="result-value">{{session.pitchScore}}</text>
+        <text class="result-label">音准分</text>
+      </view>
+      <view class="result-item">
+        <text class="result-value">{{session.stabilityScore}}</text>
+        <text class="result-label">稳定性</text>
+      </view>
+      <view class="result-item">
+        <text class="result-value">{{session.durationSec}}s</text>
+        <text class="result-label">练习时长</text>
+      </view>
+    </view>
+
+    <view class="panel advice">
+      <text class="advice-title">反馈</text>
+      <text class="advice-text">{{adviceText}}</text>
+    </view>
+
+    <view class="panel playback">
+      <view class="playback-copy">
+        <text class="playback-title">收录检查</text>
+        <text class="playback-text">{{playbackHint}}</text>
+      </view>
+      <button
+        wx:if="{{hasRecording}}"
+        class="secondary-button playback-button"
+        bindtap="togglePlayback"
+      >
+        {{playbackButtonText}}
+      </button>
+    </view>
+
+    <view class="actions">
+      <button class="primary-button" loading="{{saving}}" disabled="{{saved || saving}}" bindtap="saveResult">
+        {{saveButtonText}}
+      </button>
+      <button class="secondary-button" bindtap="practiceAgain">再练一次</button>
+      <button class="secondary-button" bindtap="openHistory">查看历史</button>
+    </view>
+  </block>
+</view>

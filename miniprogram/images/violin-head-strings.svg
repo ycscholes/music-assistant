@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" role="img" aria-label="violin head with four strings">
+  <rect width="720" height="300" fill="#F4F7F6"/>
+  <path d="M96 240 C112 116 185 44 302 48 L418 48 C535 44 608 116 624 240 Z" fill="#5B3826"/>
+  <path d="M134 235 C150 136 205 83 306 82 L414 82 C515 83 570 136 586 235 Z" fill="#8A5938"/>
+  <path d="M248 245 L292 70 L428 70 L472 245 Z" fill="#C3844F"/>
+  <path d="M287 62 C302 34 332 24 360 42 C388 24 418 34 433 62 Z" fill="#5B3826"/>
+  <circle cx="188" cy="106" r="23" fill="#2D2520"/>
+  <circle cx="532" cy="106" r="23" fill="#2D2520"/>
+  <circle cx="156" cy="184" r="23" fill="#2D2520"/>
+  <circle cx="564" cy="184" r="23" fill="#2D2520"/>
+  <rect x="178" y="101" width="112" height="9" rx="4.5" fill="#332821"/>
+  <rect x="430" y="101" width="112" height="9" rx="4.5" fill="#332821"/>
+  <rect x="151" y="179" width="131" height="9" rx="4.5" fill="#332821"/>
+  <rect x="438" y="179" width="131" height="9" rx="4.5" fill="#332821"/>
+  <line x1="250" y1="246" x2="320" y2="72" stroke="#F8F1DD" stroke-width="7" stroke-linecap="round"/>
+  <line x1="323" y1="246" x2="346" y2="72" stroke="#F8F1DD" stroke-width="6" stroke-linecap="round"/>
+  <line x1="397" y1="246" x2="374" y2="72" stroke="#F8F1DD" stroke-width="5" stroke-linecap="round"/>
+  <line x1="470" y1="246" x2="400" y2="72" stroke="#F8F1DD" stroke-width="4" stroke-linecap="round"/>
+  <text x="238" y="282" fill="#163B5C" font-family="Arial, sans-serif" font-size="24" font-weight="700">G</text>
+  <text x="314" y="282" fill="#163B5C" font-family="Arial, sans-serif" font-size="24" font-weight="700">D</text>
+  <text x="389" y="282" fill="#163B5C" font-family="Arial, sans-serif" font-size="24" font-weight="700">A</text>
+  <text x="462" y="282" fill="#163B5C" font-family="Arial, sans-serif" font-size="24" font-weight="700">E</text>
+</svg>

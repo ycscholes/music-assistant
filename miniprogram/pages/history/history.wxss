@@ -1,0 +1,62 @@
+.history-page,
+.record-list,
+.state,
+.header {
+  display: flex;
+  flex-direction: column;
+}
+
+.history-page {
+  gap: 24rpx;
+}
+
+.header {
+  gap: 10rpx;
+}
+
+.title {
+  color: var(--primary);
+  font-size: 44rpx;
+  font-weight: 800;
+}
+
+.subtitle,
+.record-meta,
+.record-label {
+  color: var(--muted);
+  font-size: 24rpx;
+}
+
+.state {
+  gap: 20rpx;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.error {
+  color: var(--danger);
+}
+
+.record-list {
+  gap: 18rpx;
+}
+
+.record {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.record-score {
+  color: var(--accent);
+  font-size: 52rpx;
+  font-weight: 800;
+}
+
+.record-meta {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8rpx;
+}

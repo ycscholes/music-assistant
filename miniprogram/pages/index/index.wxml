@@ -1,0 +1,30 @@
+<view class="page home-page">
+  <view class="hero">
+    <text class="eyebrow">端上音高识别 MVP</text>
+    <text class="title">小提琴智能陪练</text>
+    <text class="subtitle">先用调音器校准 G/D/A/E 空弦，再开始长音练习。</text>
+  </view>
+
+  <view class="panel action-panel">
+    <view class="metric-row">
+      <view class="metric">
+        <text class="metric-value">G D A E</text>
+        <text class="metric-label">空弦优先</text>
+      </view>
+      <view class="metric">
+        <text class="metric-value">本地</text>
+        <text class="metric-label">不上传音频</text>
+      </view>
+    </view>
+
+    <button class="primary-button" bindtap="startPractice">打开小提琴调音器</button>
+    <button class="secondary-button" bindtap="openHistory">查看练习记录</button>
+  </view>
+
+  <view class="guide">
+    <text class="guide-title">练习建议</text>
+    <text class="guide-item">1. 手机靠近琴身，保持单音长弓。</text>
+    <text class="guide-item">2. 安静环境下先练空弦，再练简单音阶。</text>
+    <text class="guide-item">3. 低置信度时不要急着纠正，先调整距离和环境。</text>
+  </view>
+</view>

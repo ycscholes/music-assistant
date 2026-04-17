@@ -1,0 +1,17 @@
+{
+  "name": "docs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "generate-prd.js",
+  "scripts": {
+    "test": "node --test",
+    "check:js": "node --check miniprogram/utils/pitch-yin.js && node --check miniprogram/utils/note.js && node --check miniprogram/utils/score.js && node --check miniprogram/utils/audio-frame.js && node --check miniprogram/utils/tuning-status.js && node --check miniprogram/pages/detect/detect.js && node --check miniprogram/pages/result/result.js && node --check miniprogram/pages/history/history.js && node --check miniprogram/pages/index/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "docx": "^9.6.1"
+  }
+}

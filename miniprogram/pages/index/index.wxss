@@ -1,0 +1,82 @@
+.home-page {
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+}
+
+.hero {
+  padding: 48rpx 0 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+}
+
+.eyebrow {
+  color: var(--accent);
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.title {
+  color: var(--primary);
+  font-size: 56rpx;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 28rpx;
+  line-height: 1.6;
+}
+
+.action-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.metric-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+}
+
+.metric {
+  border: 2rpx solid var(--line);
+  border-radius: 8rpx;
+  padding: 20rpx;
+}
+
+.metric-value {
+  display: block;
+  color: var(--primary);
+  font-size: 34rpx;
+  font-weight: 800;
+}
+
+.metric-label {
+  display: block;
+  margin-top: 8rpx;
+  color: var(--muted);
+  font-size: 24rpx;
+}
+
+.guide {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  padding: 12rpx 4rpx;
+}
+
+.guide-title {
+  color: var(--primary);
+  font-size: 32rpx;
+  font-weight: 800;
+}
+
+.guide-item {
+  color: var(--muted);
+  font-size: 26rpx;
+  line-height: 1.5;
+}
