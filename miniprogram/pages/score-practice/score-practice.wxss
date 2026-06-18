@@ -1,0 +1,357 @@
+.practice-page,
+.practice-top,
+.piece-copy,
+.score-strip,
+.state-card,
+.score-head,
+.signal-row {
+  display: flex;
+}
+
+.practice-page {
+  box-sizing: border-box;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100vw;
+  padding: 12rpx 0 16rpx;
+  gap: 8rpx;
+  overflow: hidden;
+}
+
+.piece-copy,
+.score-strip,
+.state-card {
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.practice-top {
+  flex-shrink: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 0 24rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.piece-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.eyebrow-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.eyebrow {
+  color: var(--warning);
+  font-size: 16rpx;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.follow-badge {
+  display: inline-block;
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid var(--line);
+  color: var(--muted);
+  font-size: 18rpx;
+  font-weight: 700;
+  background: transparent;
+}
+
+.follow-badge.follow-active {
+  color: var(--success);
+  border-color: var(--success);
+  background: rgba(94, 111, 78, 0.08);
+}
+
+.title {
+  color: var(--primary);
+  font-family: "Songti SC", "STSong", Georgia, serif;
+  font-size: 28rpx;
+  font-weight: 800;
+  line-height: 1.22;
+}
+
+.section-title {
+  color: var(--primary);
+  font-family: "Songti SC", "STSong", Georgia, serif;
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+.phase-copy,
+.detected-pitch,
+.range-copy {
+  color: var(--muted);
+  font-size: 20rpx;
+  line-height: 1.35;
+}
+
+.beat-pill {
+  min-width: 132rpx;
+  border-top: 2rpx solid var(--primary);
+  border-bottom: 2rpx solid var(--primary);
+  padding: 8rpx 0;
+  text-align: right;
+}
+
+.beat-pill.pulse {
+  animation: beatPulse 150ms ease-out;
+}
+
+@keyframes beatPulse {
+  0% { transform: scale(1.15); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.meter-label {
+  display: block;
+  font-size: 18rpx;
+  color: var(--warning);
+}
+
+.meter-value {
+  display: block;
+  font-family: "Songti SC", "STSong", Georgia, serif;
+  font-size: 34rpx;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.score-strip {
+  flex: 1;
+  min-height: 0;
+  gap: 6rpx;
+  padding: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.score-component {
+  flex: none;
+  height: calc(100vh - 342rpx);
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+.formal-score-scroll {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.formal-score-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  padding: 4rpx 0 calc(112rpx + env(safe-area-inset-bottom));
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.formal-score-stage {
+  position: relative;
+  flex: none;
+  width: 100%;
+  min-height: 188rpx;
+  overflow: visible;
+  background: #fffaf1;
+  border-top: 2rpx solid rgba(62, 47, 37, 0.14);
+  border-bottom: 2rpx solid rgba(62, 47, 37, 0.14);
+}
+
+.formal-score-stage.active-system {
+  border-top-color: rgba(177, 74, 43, 0.34);
+  border-bottom-color: rgba(177, 74, 43, 0.34);
+}
+
+.formal-score-image {
+  display: block;
+  width: 100%;
+}
+
+.active-note-marker {
+  position: absolute;
+  box-sizing: border-box;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.active-note-head {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46%;
+  height: 24%;
+  border-radius: 50%;
+  border: 4rpx solid var(--success);
+  background: var(--success);
+  transform: translate(-50%, -50%) rotate(-18deg);
+}
+
+.active-note-marker.long-note .active-note-head {
+  width: 52%;
+  background: #fffaf1;
+}
+
+.active-note-stem {
+  position: absolute;
+  width: 5%;
+  min-width: 3rpx;
+  height: 68%;
+  border-radius: 999rpx;
+  background: var(--success);
+}
+
+.active-note-marker.stem-up .active-note-stem {
+  left: 66%;
+  top: 0;
+}
+
+.active-note-marker.stem-down .active-note-stem {
+  left: 22%;
+  top: 48%;
+}
+
+.range-note-box {
+  position: absolute;
+  z-index: 4;
+  box-sizing: border-box;
+  border-radius: 999rpx;
+}
+
+.range-note-box.selectable {
+  background: rgba(177, 74, 43, 0.04);
+}
+
+.range-note-box.selected {
+  border: 3rpx solid rgba(177, 74, 43, 0.52);
+  background: rgba(237, 166, 64, 0.16);
+}
+
+.range-note-box.range-start,
+.range-note-box.range-end {
+  border-color: rgba(177, 74, 43, 0.92);
+  box-shadow: 0 0 0 7rpx rgba(177, 74, 43, 0.1);
+}
+
+.compact-score {
+  height: calc(100vh - 300rpx);
+}
+
+.score-head,
+.signal-row {
+  flex-shrink: 0;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14rpx;
+  padding: 0 20rpx;
+}
+
+.score-head view {
+  display: flex;
+  flex-direction: column;
+  gap: 2rpx;
+}
+
+.signal-row {
+  padding-bottom: calc(112rpx + env(safe-area-inset-bottom));
+}
+
+.target-note,
+.detected-note,
+.progress {
+  color: var(--accent);
+  font-family: Georgia, "Songti SC", serif;
+  font-size: 24rpx;
+  font-weight: 800;
+}
+
+.detected-note {
+  color: var(--primary);
+  font-size: 22rpx;
+}
+
+.progress {
+  white-space: nowrap;
+}
+
+.danger-outline {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  width: auto;
+  max-width: none;
+  min-height: 68rpx;
+  margin: 0 32rpx;
+  margin-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  padding: 0 28rpx;
+  background: var(--ivory);
+  color: var(--danger);
+  border: 1.5rpx solid rgba(184, 80, 66, 0.5);
+  border-radius: 999rpx;
+  font-size: 25rpx;
+  line-height: 68rpx;
+}
+
+.primary-button {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  width: auto;
+  max-width: none;
+  margin: 0 32rpx;
+  margin-bottom: calc(24rpx + env(safe-area-inset-bottom));
+}
+
+.practice-actions {
+  position: fixed;
+  right: 28rpx;
+  bottom: calc(20rpx + env(safe-area-inset-bottom));
+  left: 28rpx;
+  z-index: 100;
+  display: grid;
+  grid-template-columns: 1fr auto 1.3fr;
+  gap: 8rpx;
+  align-items: center;
+}
+
+.practice-actions .primary-button,
+.practice-actions .secondary-button {
+  position: static;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  min-height: 64rpx;
+  padding: 0 20rpx;
+  line-height: 64rpx;
+  font-size: 24rpx;
+}
+
+.practice-actions .range-reset {
+  grid-column: 2;
+  min-width: 76rpx;
+  padding: 0 14rpx;
+}
+
+.score-strip,
+.state-card {
+  background: transparent;
+  border-left: none;
+  border-right: none;
+}

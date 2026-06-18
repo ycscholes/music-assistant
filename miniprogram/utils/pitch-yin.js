@@ -1,6 +1,6 @@
 const DEFAULT_OPTIONS = {
   threshold: 0.12,
-  minFrequency: 180,
+  minFrequency: 160,
   maxFrequency: 3000,
   minRms: 0.01,
 };
@@ -27,6 +27,24 @@ function normalizeInput(input) {
   return Float32Array.from(input);
 }
 
+function removeDcAndHighPass(buffer) {
+  const len = buffer.length;
+  if (len < 2) {
+    return buffer;
+  }
+  let sum = 0;
+  for (let i = 0; i < len; i += 1) {
+    sum += buffer[i];
+  }
+  const dc = sum / len;
+  const out = new Float32Array(len);
+  out[0] = buffer[0] - dc;
+  for (let i = 1; i < len; i += 1) {
+    out[i] = buffer[i] - buffer[i - 1] - dc;
+  }
+  return out;
+}
+
 function parabolicInterpolation(values, tau) {
   const left = values[tau - 1];
   const center = values[tau];
@@ -46,7 +64,7 @@ function parabolicInterpolation(values, tau) {
 
 function detectPitchYin(inputBuffer, sampleRate, options = {}) {
   const opts = Object.assign({}, DEFAULT_OPTIONS, options);
-  const buffer = normalizeInput(inputBuffer);
+  const buffer = removeDcAndHighPass(normalizeInput(inputBuffer));
 
   if (!sampleRate || buffer.length < 32) {
     return { frequency: null, confidence: 0, rms: 0 };
@@ -67,15 +85,37 @@ function detectPitchYin(inputBuffer, sampleRate, options = {}) {
     return { frequency: null, confidence: 0, rms };
   }
 
-  const difference = new Float32Array(maxTau + 1);
+  // Compute autocorrelation via cumulative sum-of-products, O(N * maxTau) but
+  // with a tighter inner loop that avoids the subtraction+squaring per sample.
+  // r[tau] = sum_{i=0}^{N-tau-1} x[i] * x[i+tau]
+  // Then difference[tau] = energy[0] + energy[tau] - 2*r[tau]
+  // where energy[tau] = sum_{i=0}^{N-tau-1} x[i]^2  (computed incrementally)
+  const N = buffer.length;
+  const energy = new Float32Array(maxTau + 1);
+  const r = new Float32Array(maxTau + 1);
+
+  // Pre-compute energy[0] = sum of all x[i]^2
+  let e0 = 0;
+  for (let i = 0; i < N; i += 1) {
+    e0 += buffer[i] * buffer[i];
+  }
+  energy[0] = e0;
+
+  // Compute r[tau] and energy[tau] incrementally
   for (let tau = 1; tau <= maxTau; tau += 1) {
     let sum = 0;
-    const limit = buffer.length - tau;
+    const limit = N - tau;
     for (let i = 0; i < limit; i += 1) {
-      const delta = buffer[i] - buffer[i + tau];
-      sum += delta * delta;
+      sum += buffer[i] * buffer[i + tau];
     }
-    difference[tau] = sum;
+    r[tau] = sum;
+    energy[tau] = energy[tau - 1] - buffer[tau - 1] * buffer[tau - 1];
+  }
+
+  const difference = new Float32Array(maxTau + 1);
+  difference[0] = 0;
+  for (let tau = 1; tau <= maxTau; tau += 1) {
+    difference[tau] = energy[0] + energy[tau] - 2 * r[tau];
   }
 
   const cmnd = new Float32Array(maxTau + 1);

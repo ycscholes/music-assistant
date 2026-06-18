@@ -1,0 +1,94 @@
+.score-list-page,
+.header,
+.piece-list,
+.piece-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.score-list-page,
+.piece-list {
+  gap: 24rpx;
+}
+
+.score-list-page {
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
+}
+
+.header,
+.piece-card {
+  gap: 12rpx;
+}
+
+.eyebrow {
+  color: var(--warning);
+  font-size: 20rpx;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.title {
+  color: var(--primary);
+  font-family: "Songti SC", "STSong", Georgia, serif;
+  font-size: 52rpx;
+  font-weight: 800;
+}
+
+.subtitle,
+.piece-meta,
+.piece-focus {
+  color: var(--muted);
+  font-size: 24rpx;
+  line-height: 1.45;
+}
+
+.piece-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20rpx;
+}
+
+.piece-card {
+  padding: 26rpx 0;
+  border: none;
+  border-bottom: 1rpx solid var(--line);
+  background: transparent;
+}
+
+.piece-list {
+  border-top: 1rpx solid var(--line);
+}
+
+.piece-title,
+.piece-duration {
+  display: block;
+  color: var(--primary);
+  font-family: "Songti SC", "STSong", Georgia, serif;
+  font-size: 32rpx;
+  font-weight: 800;
+}
+
+.piece-meta,
+.piece-focus {
+  display: block;
+}
+
+.piece-action {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10rpx;
+}
+
+.piece-link {
+  color: var(--accent);
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+.piece-card-active {
+  background: rgba(245, 239, 227, 0.4);
+}

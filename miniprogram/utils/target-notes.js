@@ -10,7 +10,7 @@ const TARGET_NOTES = [
     key: 'D4',
     label: 'D4',
     stringName: 'D 弦',
-    frequency: 293.66,
+    frequency: 293.6647679174076,
     prompt: '请拉 D 弦空弦，保持 3-5 秒长弓',
   },
   {
@@ -24,7 +24,7 @@ const TARGET_NOTES = [
     key: 'E5',
     label: 'E5',
     stringName: 'E 弦',
-    frequency: 659.25,
+    frequency: 659.2551138257398,
     prompt: '请拉 E 弦空弦，保持 3-5 秒长弓',
   },
 ];

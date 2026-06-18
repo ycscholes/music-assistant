@@ -6,6 +6,7 @@ Page({
     records: [],
     loading: true,
     errorText: '',
+    empty: false,
   },
 
   onShow() {
@@ -18,20 +19,39 @@ Page({
       const res = await listPracticeSessions({ pageSize: 20 });
       const records = (res.data || []).map((item) => ({
         id: item._id,
-        targetNote: item.targetNote || '--',
-        score: item.totalScore || 0,
+        sessionType: item.sessionType || 'basic',
+        title:
+          item.sessionType === 'score_practice'
+            ? this.getScorePracticeTitle(item)
+            : `目标音 ${item.targetNote || '--'}`,
+        detailText:
+          item.sessionType === 'score_practice'
+            ? `完成率 ${Math.round(((item.summaryScores && item.summaryScores.completionRate) || 0) * 100)}%`
+            : `平均偏差 ${formatCentOffset(item.avgCentOffset)}`,
+        score:
+          item.sessionType === 'score_practice'
+            ? (item.summaryScores && item.summaryScores.totalScore) || 0
+            : item.totalScore || 0,
         durationText: `${item.durationSec || 0}s`,
-        avgCentText: formatCentOffset(item.avgCentOffset),
         createdText: this.formatDate(item.createdAt || item.startedAt),
       }));
-      this.setData({ records, loading: false });
+      this.setData({ records, loading: false, empty: records.length === 0 });
     } catch (error) {
       console.error('load practice sessions failed', error);
       this.setData({
         loading: false,
-        errorText: '读取失败，请检查 CloudBase 环境和数据库权限。',
+        errorText: '记录暂时不可用，请稍后再试。',
       });
     }
+  },
+
+  getScorePracticeTitle(item) {
+    const title = item.pieceTitle || '--';
+    const range = item.scoreRange;
+    if (!range || range.isFullPiece) {
+      return `${title} · 整首`;
+    }
+    return `${title} · ${range.label || `${range.startLabel} 至 ${range.endLabel}`}`;
   },
 
   formatDate(value) {

@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "曲谱练习",
+  "usingComponents": {
+    "staff-score": "/components/staff-score/index"
+  }
+}

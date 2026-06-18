@@ -1,312 +1,443 @@
 .detect-page {
-  min-height: 100vh;
-  padding: 24rpx 34rpx 32rpx;
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 28rpx 26rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
-  background:
-    radial-gradient(circle at 50% 18%, rgba(236, 156, 19, 0.16), transparent 30%),
-    linear-gradient(180deg, #FBFAF3 0%, #F1EEE2 48%, #ECE7D8 100%);
-  color: #12151B;
-  overflow: hidden;
-}
-
-.tuner-header {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  min-height: 52rpx;
-}
-
-.screen-title {
-  justify-self: center;
-  padding-left: 90rpx;
-  color: #111318;
-  font-size: 32rpx;
-  font-weight: 700;
-  letter-spacing: 0;
-}
-
-.screen-close {
-  color: #111318;
-  font-size: 24rpx;
-  line-height: 1;
-}
-
-.gauge-wrap {
-  height: 286rpx;
-  position: relative;
-}
-
-.gauge {
-  position: relative;
-  width: 680rpx;
-  height: 286rpx;
-  margin: 0 auto;
-}
-
-.gauge-image {
-  position: absolute;
-  left: 0;
-  top: -12rpx;
-  width: 680rpx;
-  filter: drop-shadow(0 14rpx 18rpx rgba(72, 54, 20, 0.14));
-  z-index: 1;
-}
-
-.gauge-needle {
-  position: absolute;
-  left: 50%;
-  top: 82rpx;
-  width: 22rpx;
-  margin-left: -11rpx;
-  transform-origin: 50% 100%;
-  transition: transform 120ms ease-out;
-  z-index: 4;
+  color: var(--ink);
+  overflow-y: auto;
 }
 
 .frequency-row {
-  margin-top: -28rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 22rpx;
-  color: #2E332F;
-  font-size: 24rpx;
+  gap: 16rpx;
+  flex: 0 0 auto;
 }
 
-.listen-dot {
-  width: 48rpx;
-  height: 28rpx;
-  border-radius: 999rpx;
-  background: #D8D5CA;
+.frequency-text {
+  color: var(--muted);
+  font-size: 22rpx;
+  font-family: Georgia, "Songti SC", serif;
+}
+
+.frequency-text.active {
+  color: var(--primary);
+}
+
+.frequency-toggle {
   position: relative;
+  width: 78rpx;
+  height: 38rpx;
+  border: 1rpx solid var(--line);
+  border-radius: 999rpx;
+  background: rgba(245, 239, 227, 0.72);
 }
 
-.listen-dot::after {
+.toggle-dot {
+  position: absolute;
+  left: 4rpx;
+  top: 4rpx;
+  width: 30rpx;
+  height: 30rpx;
+  border-radius: 50%;
+  background: var(--primary);
+  transition: transform 180ms ease-out;
+}
+
+.frequency-toggle.active .toggle-dot {
+  transform: translateX(40rpx);
+}
+
+.readout-panel {
+  margin-top: 24rpx;
+  padding: 26rpx 0 20rpx;
+  border-top: 1rpx solid var(--line);
+  border-bottom: 1rpx solid var(--line);
+  text-align: center;
+  flex: 0 0 auto;
+}
+
+.readout-label {
+  display: block;
+  color: var(--warning);
+  font-size: 20rpx;
+  font-weight: 700;
+}
+
+.readout-note {
+  display: block;
+  margin-top: 6rpx;
+  color: var(--primary);
+  font-family: "Songti SC", "STSong", Georgia, serif;
+  font-size: 112rpx;
+  font-weight: 800;
+  line-height: 0.95;
+}
+
+.readout-cent {
+  display: block;
+  margin-top: 10rpx;
+  color: var(--accent);
+  font-family: Georgia, "Songti SC", serif;
+  font-size: 42rpx;
+  font-weight: 700;
+}
+
+.reference-scale {
+  position: relative;
+  width: 74vw;
+  max-width: 560rpx;
+  height: 84rpx;
+  margin: 22rpx auto 0;
+}
+
+.scale-tune-zone {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 25%;
+  height: 100%;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg,
+    rgba(94, 111, 78, 0) 0%,
+    rgba(94, 111, 78, 0.10) 30%,
+    rgba(94, 111, 78, 0.14) 50%,
+    rgba(94, 111, 78, 0.10) 70%,
+    rgba(94, 111, 78, 0) 100%
+  );
+  border-radius: 4rpx;
+  pointer-events: none;
+}
+
+.scale-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 28rpx;
+  height: 1rpx;
+  background: var(--primary);
+}
+
+.scale-line::before,
+.scale-line::after {
   content: "";
   position: absolute;
-  left: 6rpx;
-  top: 6rpx;
-  width: 16rpx;
-  height: 16rpx;
-  border-radius: 50%;
-  background: #F8F5EA;
-  transition: transform 160ms ease-out;
+  top: -9rpx;
+  width: 1rpx;
+  height: 19rpx;
+  background: var(--line);
 }
 
-.listen-dot.active {
-  background: #EC9C13;
+.scale-line::before {
+  left: 18%;
 }
 
-.listen-dot.active::after {
-  transform: translateX(20rpx);
+.scale-line::after {
+  right: 18%;
+}
+
+.scale-needle {
+  position: absolute;
+  left: 50%;
+  top: 4rpx;
+  width: 3rpx;
+  height: 48rpx;
+  border-radius: 999rpx;
+  background: var(--accent);
+  transform: translateX(-50%);
+  transition: left 120ms ease-out, background-color 120ms ease-out;
+}
+
+.scale-labels {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 18rpx;
+  font-family: Georgia, "Songti SC", serif;
 }
 
 .status-copy {
-  min-height: 76rpx;
+  margin-top: 20rpx;
+  min-height: 78rpx;
   text-align: center;
+  flex: 0 0 auto;
 }
 
 .action-tone {
   display: block;
-  color: #115E73;
-  font-size: 30rpx;
-  font-weight: 700;
+  color: var(--warning);
+  font-size: 26rpx;
   line-height: 1.25;
+  font-weight: 700;
 }
 
 .action-tone.in-tune {
-  color: #1B7F45;
+  color: var(--success);
 }
 
 .action-tone.sharp,
-.action-tone.flat {
-  color: #0E6E83;
-}
-
+.action-tone.flat,
 .action-tone.far {
-  color: #C33A24;
+  color: var(--accent);
 }
 
 .action-tone.waiting {
-  color: #6C6B60;
+  color: var(--muted);
 }
 
 .status-line {
   display: block;
   margin-top: 8rpx;
-  color: rgba(18, 21, 27, 0.62);
-  font-size: 22rpx;
+  color: var(--muted);
+  font-size: 20rpx;
+  line-height: 1.3;
 }
 
 .instrument-panel {
-  position: relative;
   flex: 1;
-  min-height: 500rpx;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  min-height: 0;
+  margin-top: 2rpx;
 }
 
 .violin-stage {
   position: relative;
-  width: 100%;
-  height: 536rpx;
+  width: 64vw;
+  max-width: 480rpx;
+  min-height: 0;
+  margin-bottom: -8rpx;
 }
 
 .violin-head {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 386rpx;
-  transform: translateX(-50%);
-  transform-origin: center center;
-  filter: drop-shadow(0 18rpx 26rpx rgba(35, 19, 8, 0.32));
+  position: relative;
   z-index: 2;
+  width: 100%;
+  display: block;
+  filter: drop-shadow(0 22rpx 28rpx rgba(23, 22, 20, 0.2));
 }
 
-.fingerboard-light {
+.string-guideline {
   position: absolute;
   left: 50%;
-  top: 170rpx;
-  width: 70rpx;
-  height: 344rpx;
-  transform: translateX(-50%);
-  border-radius: 50rpx;
-  background: linear-gradient(180deg, rgba(28, 129, 189, 0.12), rgba(38, 177, 255, 0.72), rgba(28, 129, 189, 0.08));
-  filter: blur(2rpx);
-  box-shadow: 0 0 40rpx rgba(33, 162, 255, 0.8);
-  z-index: 1;
+  top: 18%;
+  width: 4rpx;
+  height: 67%;
+  margin-left: -3rpx;
+  opacity: 0;
+  border-radius: 999rpx;
+  background: linear-gradient(180deg, rgba(146, 118, 74, 0) 0%, rgba(146, 118, 74, 0.86) 34%, rgba(146, 118, 74, 0.86) 72%, rgba(146, 118, 74, 0) 100%);
+  box-shadow: 0 0 18rpx rgba(146, 118, 74, 0.38);
+  transition: opacity 180ms ease-out;
+  z-index: 3;
 }
 
-.string-selectors {
-  position: absolute;
-  top: 166rpx;
-  display: flex;
-  flex-direction: column;
-  gap: 52rpx;
-  z-index: 4;
-}
-
-.string-selectors-left {
-  left: 20rpx;
-  align-items: flex-start;
-}
-
-.string-selectors-right {
-  right: 20rpx;
-  align-items: flex-end;
+.string-guideline.active {
+  opacity: 1;
 }
 
 .string-control {
-  min-width: 142rpx;
+  position: absolute;
+  z-index: 4;
+  width: 194rpx;
+  height: 88rpx;
+  box-sizing: border-box;
+}
+
+.string-control.left.top {
+  left: -10%;
+  top: 33%;
+}
+
+.string-control.left.bottom {
+  left: -10%;
+  top: 49.5%;
+}
+
+.string-control.right.top {
+  right: -10%;
+  top: 26.5%;
+}
+
+.string-control.right.bottom {
+  right: -10%;
+  top: 42.5%;
+}
+
+.string-control.active {
+  transform: scale(1.02);
+}
+
+.string-label {
+  position: absolute;
+  width: 72rpx;
+  height: 72rpx;
   display: flex;
   align-items: center;
-  gap: 14rpx;
-}
-
-.string-selectors-right .string-control {
-  flex-direction: row-reverse;
-}
-
-.string-button {
-  width: 76rpx;
-  height: 76rpx;
-  padding: 0;
-  margin: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: #151515;
+  justify-content: center;
+  color: var(--primary);
+  font-family: Georgia, "Songti SC", serif;
   font-size: 40rpx;
-  font-weight: 500;
-  line-height: 76rpx;
-  text-align: center;
+  font-weight: 700;
+  line-height: 1;
+  border-radius: 50%;
+  box-sizing: border-box;
+  transition:
+    color 160ms ease-out,
+    transform 160ms ease-out,
+    border-color 160ms ease-out,
+    background 160ms ease-out,
+    box-shadow 160ms ease-out;
+  z-index: 5;
 }
 
-.string-button::after {
-  border: 0;
+.string-label.left.top,
+.string-label.left.bottom {
+  left: 8rpx;
+  top: 8rpx;
 }
 
-.string-button.active {
-  color: #F9F5E9;
-  background: rgba(136, 71, 28, 0.88);
-  box-shadow:
-    0 0 0 10rpx rgba(42, 164, 255, 0.28),
-    0 0 34rpx rgba(42, 164, 255, 0.95),
-    inset 0 4rpx 10rpx rgba(255, 255, 255, 0.26);
+.string-label.right.top,
+.string-label.right.bottom {
+  right: 8rpx;
+  top: 8rpx;
 }
 
-.string-name {
-  color: rgba(18, 21, 27, 0.55);
-  font-size: 20rpx;
+.string-label.active {
+  border: 2rpx solid rgba(146, 118, 74, 0.76);
+  background: rgba(245, 239, 227, 0.78);
+  color: var(--accent);
+  box-shadow: 0 0 0 7rpx rgba(146, 118, 74, 0.1);
+  transform: none;
 }
 
-.readout-strip {
+.metrics-row {
   display: grid;
-  grid-template-columns: 1fr 1.7fr 1fr;
-  gap: 10rpx;
-  padding: 18rpx 0 0;
+  grid-template-columns: 1fr 1.6fr 1fr;
+  gap: 0;
+  border-top: 1rpx solid var(--line);
+  border-bottom: 1rpx solid var(--line);
+  flex: 0 0 auto;
 }
 
-.readout-item {
-  min-height: 84rpx;
-  border-top: 2rpx solid rgba(70, 58, 38, 0.18);
-  padding-top: 12rpx;
+.metric-chip {
+  min-height: 72rpx;
+  padding: 12rpx 8rpx 10rpx;
+  border-right: 1rpx solid var(--line);
   text-align: center;
 }
 
-.readout-value {
+.metric-chip:last-child {
+  border-right: none;
+}
+
+.metric-value {
   display: block;
-  color: #171717;
-  font-size: 28rpx;
-  font-weight: 800;
+  color: var(--primary);
+  font-family: Georgia, "Songti SC", serif;
+  font-size: 22rpx;
+  font-weight: 700;
   line-height: 1.2;
 }
 
-.readout-label {
+.metric-label {
   display: block;
-  margin-top: 8rpx;
-  color: rgba(18, 21, 27, 0.54);
-  font-size: 20rpx;
+  margin-top: 4rpx;
+  color: var(--muted);
+  font-size: 18rpx;
   line-height: 1.2;
 }
 
-.actions {
-  padding-top: 4rpx;
+.string-indicator {
+  position: absolute;
+  z-index: 5;
+  color: var(--muted);
+  font-family: Georgia, "Songti SC", serif;
+  font-size: 44rpx;
+  font-weight: 300;
+  line-height: 1;
+  opacity: 0.48;
 }
 
-.primary-button {
-  min-height: 88rpx;
-  border-radius: 8rpx;
-  background: #EC9C13;
-  color: #111318;
-  font-size: 30rpx;
-  font-weight: 800;
-  line-height: 88rpx;
+.string-indicator.left.top {
+  left: 36rpx;
+  top: 33%;
 }
 
-.recording {
-  background: #171717;
-  color: #F7F1E5;
+.string-indicator.left.bottom {
+  left: 36rpx;
+  top: 49.5%;
 }
 
-@media (max-width: 360px) {
+.string-indicator.right.top {
+  right: 36rpx;
+  top: 26.5%;
+}
+
+.string-indicator.right.bottom {
+  right: 36rpx;
+  top: 42.5%;
+}
+
+.reduce-motion .scale-needle,
+.reduce-motion .toggle-dot,
+.reduce-motion .string-guideline,
+.reduce-motion .string-label,
+.reduce-motion .string-control {
+  transition: none !important;
+}
+
+.listening-button {
+  width: 100%;
+  max-width: 520rpx;
+  margin: 14rpx auto 0;
+  min-height: 68rpx;
+  padding: 0 28rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid var(--primary);
+  background: transparent;
+  color: var(--primary);
+  font-size: 26rpx;
+  font-weight: 700;
+  line-height: 68rpx;
+}
+
+.listening-button.active {
+  background: var(--primary);
+  color: var(--ivory);
+}
+
+@media (max-width: 375px) {
   .detect-page {
-    padding-left: 24rpx;
-    padding-right: 24rpx;
+    padding-left: 22rpx;
+    padding-right: 22rpx;
   }
 
-  .gauge {
-    width: 640rpx;
+  .readout-note {
+    font-size: 96rpx;
   }
 
   .violin-stage {
-    height: 520rpx;
+    width: 66vw;
+    max-width: 450rpx;
   }
 
-  .string-selectors-left {
-    left: 14rpx;
+  .string-control {
+    width: 170rpx;
+    height: 78rpx;
   }
 
-  .string-selectors-right {
-    right: 14rpx;
+  .string-label {
+    width: 62rpx;
+    height: 62rpx;
+    font-size: 34rpx;
   }
 }

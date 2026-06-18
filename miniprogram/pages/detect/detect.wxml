@@ -1,87 +1,59 @@
-<view class="page detect-page">
-  <view class="tuner-header">
-    <text class="screen-title">Violin Tuner</text>
-    <text class="screen-close" bindtap="closeTuner">Close ×</text>
+<view class="page detect-page {{reduceMotion ? 'reduce-motion' : ''}}">
+  <view class="frequency-row">
+    <text class="frequency-text {{!isReference442 ? 'active' : ''}}">440Hz</text>
+    <view class="frequency-toggle {{isReference442 ? 'active' : ''}}" bindtap="toggleReferencePitch">
+      <view class="toggle-dot"></view>
+    </view>
+    <text class="frequency-text {{isReference442 ? 'active' : ''}}">442Hz</text>
   </view>
 
-  <view class="gauge-wrap">
-    <view class="gauge">
-      <image class="gauge-image" src="/images/tuner-gauge.png" mode="widthFix" />
-      <image class="gauge-needle" src="/images/tuner-needle.png" mode="widthFix" style="transform: rotate({{needleRotation}}deg);" />
+  <view class="readout-panel">
+    <text class="readout-label">{{tuningStatusText}}</text>
+    <text class="readout-note">{{noteLabel}}</text>
+    <text class="readout-cent">{{centText}}</text>
+    <view class="reference-scale">
+      <view class="scale-tune-zone"></view>
+      <view class="scale-line"></view>
+      <view class="scale-needle" style="left: {{needlePosition}}%; background-color: {{needleColor}};"></view>
+      <view class="scale-labels">
+        <text>flat</text>
+        <text>in tune</text>
+        <text>sharp</text>
+      </view>
     </view>
   </view>
 
-  <view class="frequency-row">
-    <text>440Hz</text>
-    <view class="{{isRecording ? 'listen-dot active' : 'listen-dot'}}"></view>
-    <text>442Hz</text>
-  </view>
-
   <view class="status-copy">
-    <text class="{{actionToneClass}}">{{tuningStatusText}} - {{tuningActionText}}</text>
+    <text class="action-tone {{isStartingDetect ? 'waiting' : actionToneClass}}">{{isStartingDetect ? '正在准备麦克风...' : headlineText}}</text>
     <text class="status-line">{{statusText}}</text>
   </view>
 
   <view class="instrument-panel">
     <view class="violin-stage">
-      <image
-        class="violin-head"
-        src="/images/tuner-violin-head.png"
-        mode="widthFix"
-      />
-      <view class="fingerboard-light"></view>
-      <view class="string-selectors string-selectors-left">
-        <view
-          wx:for="{{targetNotesLeft}}"
-          wx:key="key"
-          class="string-control"
-        >
-          <button
-            class="{{item.buttonClass}}"
-            data-key="{{item.key}}"
-            bindtap="selectTarget"
-          >
-            {{item.noteName}}
-          </button>
-          <text class="string-name">{{item.stringName}}</text>
-        </view>
-      </view>
-      <view class="string-selectors string-selectors-right">
-        <view
-          wx:for="{{targetNotesRight}}"
-          wx:key="key"
-          class="string-control"
-        >
-          <button
-            class="{{item.buttonClass}}"
-            data-key="{{item.key}}"
-            bindtap="selectTarget"
-          >
-            {{item.noteName}}
-          </button>
-          <text class="string-name">{{item.stringName}}</text>
-        </view>
+      <image class="violin-head" src="/images/violin-head.png" mode="widthFix" />
+      <view class="string-guideline {{isRecording ? 'active' : ''}}"></view>
+      <view wx:for="{{targetNotes}}" wx:key="key" class="{{item.controlClass}}" data-key="{{item.key}}" bindtap="selectTarget" aria-label="选择{{item.stringName}}">
+        <text class="{{item.labelClass}} {{item.active ? 'active' : ''}}">{{item.noteName}}</text>
       </view>
     </view>
   </view>
 
-  <view class="readout-strip">
-    <view class="readout-item">
-      <text class="readout-value">{{noteLabel}}</text>
-      <text class="readout-label">目标弦</text>
+  <view class="metrics-row">
+    <view class="metric-chip">
+      <text class="metric-value">{{noteLabel}}</text>
+      <text class="metric-label">目标弦</text>
     </view>
-    <view class="readout-item">
-      <text class="readout-value">{{frequencyText}}</text>
-      <text class="readout-label">{{detectedNoteText}}</text>
+    <view class="metric-chip metric-chip-wide">
+      <text class="metric-value">{{frequencyText}}</text>
+      <text class="metric-label">{{detectedNoteText}}</text>
     </view>
-    <view class="readout-item">
-      <text class="readout-value">{{centText}}</text>
-      <text class="readout-label">偏差</text>
+    <view class="metric-chip">
+      <text class="metric-value">{{centText}}</text>
+      <text class="metric-label">偏差</text>
     </view>
   </view>
 
-  <view class="actions">
-    <button wx:if="{{!isRecording}}" class="primary-button" bindtap="startDetect">开始调音</button>
-    <button wx:else class="primary-button recording" bindtap="stopDetect">暂停调音</button>
-  </view>
+  <button class="listening-button {{isRecording ? 'active' : ''}}" bindtap="toggleListening">
+    {{isRecording ? '暂停监听' : '开始监听'}}
+  </button>
 </view>

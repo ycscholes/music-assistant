@@ -1,0 +1,11 @@
+<view class="page settings-page">
+  <view class="settings-list">
+    <view class="setting-row" bindtap="toggleReduceMotion">
+      <text class="setting-label">减弱动画效果</text>
+      <view class="setting-toggle {{reduceMotion ? 'active' : ''}}">
+        <view class="setting-toggle-dot"></view>
+      </view>
+    </view>
+    <text class="setting-hint">开启后，调音指针与拍点动画将静止，适合对动画敏感的用户。</text>
+  </view>
+</view>

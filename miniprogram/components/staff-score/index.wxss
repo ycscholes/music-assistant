@@ -1,0 +1,277 @@
+:host {
+  display: block;
+  min-height: 0;
+}
+
+.staff-score {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+}
+
+.staff-score.fullscreen {
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  gap: 8rpx;
+  overflow: hidden;
+}
+
+.staff-meta {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.staff-scroll {
+  width: 100%;
+  min-height: 188rpx;
+  background: var(--background);
+  border-top: 1rpx solid var(--line);
+  border-bottom: 1rpx solid var(--line);
+}
+
+.staff-systems {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.staff-score.fullscreen .staff-systems {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  gap: 8rpx;
+}
+
+.staff-system {
+  width: 100%;
+  overflow: hidden;
+  background: var(--background);
+  border-top: 1rpx solid var(--line);
+  border-bottom: 1rpx solid var(--line);
+}
+
+.staff-score.fullscreen .staff-system {
+  min-height: 230rpx;
+  display: flex;
+  align-items: center;
+}
+
+.staff-canvas {
+  position: relative;
+  height: 188rpx;
+}
+
+.system-canvas {
+  max-width: 100%;
+}
+
+.staff-score.fullscreen .system-canvas {
+  height: 230rpx;
+}
+
+.staff-score.fullscreen .staff-meta {
+  padding: 0 20rpx;
+  font-size: 20rpx;
+}
+
+.staff-score.fullscreen .staff-line {
+  right: 0;
+}
+
+.staff-score.fullscreen .note-label {
+  top: 64rpx;
+  font-size: 18rpx;
+}
+
+.staff-score.fullscreen .measure-bar {
+  height: 104rpx;
+}
+
+.staff-score.compact {
+  gap: 4rpx;
+}
+
+.staff-score.compact .staff-meta {
+  padding: 0 16rpx;
+  font-size: 16rpx;
+  line-height: 1.1;
+}
+
+.staff-score.compact .staff-systems {
+  gap: 4rpx;
+}
+
+.staff-score.compact .staff-system {
+  min-height: 126rpx;
+}
+
+.staff-score.compact .system-canvas {
+  height: 126rpx;
+}
+
+.staff-score.compact .clef {
+  left: 22rpx;
+  top: 12rpx;
+  font-size: 56rpx;
+}
+
+.staff-score.compact .measure-bar {
+  top: 20rpx;
+  height: 64rpx;
+}
+
+.staff-score.compact .note-label {
+  top: 28rpx;
+  font-size: 13rpx;
+}
+
+.staff-score.compact .note-head {
+  height: 14rpx;
+  border-width: 2rpx;
+}
+
+.staff-score.compact .stem {
+  height: 40rpx;
+}
+
+.staff-score.compact .accidental {
+  left: -18rpx;
+  top: -18rpx;
+  font-size: 22rpx;
+}
+
+.clef {
+  position: absolute;
+  left: 18rpx;
+  top: 18rpx;
+  color: var(--primary);
+  font-family: "Times New Roman", "Songti SC", serif;
+  font-size: 76rpx;
+  line-height: 1;
+}
+
+.staff-line,
+.measure-bar,
+.ledger-line,
+.stem {
+  position: absolute;
+  background: var(--staff-gray);
+}
+
+.staff-line {
+  left: 68rpx;
+  right: 18rpx;
+  height: 2rpx;
+}
+
+.measure-bar {
+  top: 32rpx;
+  width: 2rpx;
+  height: 72rpx;
+  opacity: 0.58;
+}
+
+.score-note {
+  position: absolute;
+  width: 42rpx;
+  height: 42rpx;
+}
+
+.note-head {
+  position: absolute;
+  left: 0;
+  top: -8rpx;
+  height: 17rpx;
+  border: 3rpx solid var(--primary);
+  border-radius: 50%;
+  background: var(--primary);
+  transform: rotate(-18deg);
+}
+
+.score-note.long .note-head {
+  background: var(--background);
+}
+
+.score-note.active .note-head {
+  border-color: var(--success);
+  background: var(--success);
+  box-shadow: none;
+}
+
+.score-note.selectable {
+  width: 56rpx;
+  height: 64rpx;
+}
+
+.score-note.in-range .note-head {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 8rpx rgba(177, 74, 43, 0.1);
+}
+
+.score-note.range-start .note-head,
+.score-note.range-end .note-head {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: 0 0 0 10rpx rgba(177, 74, 43, 0.16);
+}
+
+.score-note.active.long .note-head {
+  background: var(--background);
+  box-shadow: none;
+}
+
+.stem {
+  left: 22rpx;
+  width: 3rpx;
+  height: 54rpx;
+}
+
+.stem.down {
+  left: 1rpx;
+}
+
+.score-note.active .stem {
+  background: var(--success);
+}
+
+.score-note.active .accidental,
+.score-note.active .note-label {
+  color: var(--success);
+}
+
+.ledger-line {
+  left: -8rpx;
+  width: 40rpx;
+  height: 2rpx;
+}
+
+.accidental {
+  position: absolute;
+  left: -24rpx;
+  top: -24rpx;
+  color: var(--primary);
+  font-family: Georgia, "Songti SC", serif;
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.note-label {
+  position: absolute;
+  left: -10rpx;
+  top: 50rpx;
+  width: 64rpx;
+  color: var(--muted);
+  font-size: 20rpx;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.score-note.active .note-label,
+.score-note.active .accidental {
+  color: var(--success);
+  font-weight: 800;
+}

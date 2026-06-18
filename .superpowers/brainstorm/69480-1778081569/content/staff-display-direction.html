@@ -1,0 +1,71 @@
+<h2>评测页五线谱显示方向</h2>
+<p class="subtitle">当前选择：正式谱面优先、只改评测页、以当前系统为主。下面是实现后的页面信息结构草图。</p>
+
+<div class="mockup">
+  <div class="mockup-header">Score Practice: current system focused notation</div>
+  <div class="mockup-body">
+    <div style="display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end;margin-bottom:16px;">
+      <div>
+        <div style="font-size:12px;color:#92764A;font-weight:700;letter-spacing:.12em;">120 BPM · 4/4</div>
+        <div style="font-family:Georgia,serif;font-size:26px;font-weight:800;color:#171614;">维瓦尔第 a小调协奏曲 RV356</div>
+      </div>
+      <div style="border-top:2px solid #171614;border-bottom:2px solid #171614;padding:8px 0;text-align:right;min-width:96px;">
+        <div style="font-size:12px;color:#92764A;">拍点</div>
+        <div style="font-family:Georgia,serif;font-size:28px;font-weight:800;">18 / 321</div>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid #D8D0C0;border-bottom:1px solid #D8D0C0;background:#FFFDF7;padding:18px 14px;margin-bottom:12px;position:relative;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;color:#756D61;font-size:12px;font-weight:700;">
+        <span>第 3 行 / 41 行</span>
+        <span>目标音：A5</span>
+      </div>
+      <div style="height:128px;position:relative;background:
+        linear-gradient(to bottom, transparent 29px, #8B949E 29px, #8B949E 31px, transparent 31px),
+        linear-gradient(to bottom, transparent 45px, #8B949E 45px, #8B949E 47px, transparent 47px),
+        linear-gradient(to bottom, transparent 61px, #8B949E 61px, #8B949E 63px, transparent 63px),
+        linear-gradient(to bottom, transparent 77px, #8B949E 77px, #8B949E 79px, transparent 79px),
+        linear-gradient(to bottom, transparent 93px, #8B949E 93px, #8B949E 95px, transparent 95px);">
+        <div style="position:absolute;left:0;top:9px;font-size:64px;line-height:1;font-family:Georgia,serif;">𝄞</div>
+        <div style="position:absolute;left:78px;top:44px;height:62px;width:2px;background:#8B949E;"></div>
+        <div style="position:absolute;left:160px;top:44px;height:62px;width:2px;background:#8B949E;"></div>
+        <div style="position:absolute;left:260px;top:44px;height:62px;width:2px;background:#8B949E;"></div>
+        <div style="position:absolute;left:56px;top:56px;width:270px;height:38px;border:3px solid rgba(47,125,87,.55);background:rgba(47,125,87,.08);"></div>
+        <div style="position:absolute;left:62px;top:51px;width:16px;height:12px;border:3px solid #171614;border-radius:50%;background:#171614;transform:rotate(-18deg);"></div>
+        <div style="position:absolute;left:70px;top:15px;width:2px;height:42px;background:#171614;"></div>
+        <div style="position:absolute;left:104px;top:43px;width:16px;height:12px;border:3px solid #171614;border-radius:50%;background:#171614;transform:rotate(-18deg);"></div>
+        <div style="position:absolute;left:112px;top:8px;width:2px;height:42px;background:#171614;"></div>
+        <div style="position:absolute;left:148px;top:35px;width:16px;height:12px;border:3px solid #2F7D57;border-radius:50%;background:#2F7D57;transform:rotate(-18deg);box-shadow:0 0 0 10px rgba(47,125,87,.16);"></div>
+        <div style="position:absolute;left:156px;top:0;width:2px;height:42px;background:#2F7D57;"></div>
+        <div style="position:absolute;left:198px;top:51px;width:16px;height:12px;border:3px solid #171614;border-radius:50%;background:#171614;transform:rotate(-18deg);"></div>
+        <div style="position:absolute;left:206px;top:15px;width:2px;height:42px;background:#171614;"></div>
+        <div style="position:absolute;left:246px;top:59px;width:16px;height:12px;border:3px solid #171614;border-radius:50%;background:#171614;transform:rotate(-18deg);"></div>
+        <div style="position:absolute;left:254px;top:22px;width:2px;height:42px;background:#171614;"></div>
+        <div style="position:absolute;left:68px;top:18px;width:88px;height:4px;background:#171614;transform:skewY(-10deg);"></div>
+        <div style="position:absolute;left:156px;top:2px;width:98px;height:4px;background:#171614;transform:skewY(10deg);"></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;color:#756D61;font-size:13px;">
+      <div>上一/下一行只做轻量预告，不抢主谱焦点。</div>
+      <div style="text-align:right;">当前音符用覆盖层高亮，不改谱面图片本身。</div>
+    </div>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="approve-current-system" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>认可这个方向</h3>
+      <p>正式谱面资产 + 当前系统主显示 + 运行时覆盖层高亮。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="needs-more-score-context" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>需要更多上下文</h3>
+      <p>在当前行之外保留更明显的上一行/下一行预览。</p>
+    </div>
+  </div>
+</div>

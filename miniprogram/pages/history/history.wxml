@@ -6,21 +6,22 @@
 
   <view wx:if="{{loading}}" class="panel state">正在读取记录...</view>
   <view wx:elif="{{errorText}}" class="panel state error">{{errorText}}</view>
-  <view wx:elif="{{records.length === 0}}" class="panel state">
+  <view wx:elif="{{empty}}" class="panel state">
     <text>还没有练习记录。</text>
     <button class="primary-button" bindtap="startPractice">开始第一次检测</button>
   </view>
 
   <view wx:else class="record-list">
-    <view wx:for="{{records}}" wx:key="id" class="panel record">
+    <view wx:for="{{records}}" wx:key="id" class="panel record {{item.sessionType === 'score_practice' ? 'record-score-practice' : 'record-basic'}}">
       <view>
         <text class="record-score">{{item.score}}</text>
         <text class="record-label">分</text>
       </view>
       <view class="record-meta">
-        <text>目标音 {{item.targetNote}}</text>
+        <text class="record-badge {{item.sessionType === 'score_practice' ? 'badge-score' : 'badge-basic'}}">{{item.sessionType === 'score_practice' ? '曲谱' : '调音'}}</text>
+        <text>{{item.title}}</text>
         <text>{{item.createdText}}</text>
-        <text>平均偏差 {{item.avgCentText}}</text>
+        <text>{{item.detailText}}</text>
         <text>时长 {{item.durationText}}</text>
       </view>
     </view>

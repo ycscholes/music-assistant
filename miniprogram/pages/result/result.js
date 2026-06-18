@@ -1,4 +1,4 @@
-const { savePracticeSession } = require('../../services/practice-store');
+const { saveSession } = require('../../utils/save-session');
 const { formatCentOffset } = require('../../utils/note');
 
 Page({
@@ -60,26 +60,7 @@ Page({
   },
 
   async saveResult() {
-    if (!this.data.session || this.data.saving || this.data.saved) {
-      return;
-    }
-
-    this.setData({ saving: true });
-    try {
-      await savePracticeSession(this.data.session);
-      this.setData({ saved: true, saving: false, saveButtonText: '已保存' });
-      wx.showToast({
-        title: '已保存',
-        icon: 'success',
-      });
-    } catch (error) {
-      this.setData({ saving: false });
-      wx.showToast({
-        title: '保存失败，请检查云开发配置',
-        icon: 'none',
-      });
-      console.error('save practice session failed', error);
-    }
+    await saveSession(this, this.data.session);
   },
 
   togglePlayback() {

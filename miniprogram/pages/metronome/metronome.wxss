@@ -1,0 +1,180 @@
+.metronome-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 42rpx;
+  padding-top: 48rpx;
+}
+
+.bpm-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.bpm-row {
+  display: flex;
+  align-items: center;
+  gap: 32rpx;
+}
+
+.bpm-stepper {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1rpx solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+}
+
+.bpm-stepper-active {
+  background: var(--surface);
+}
+
+.bpm-step {
+  color: var(--primary);
+  font-family: Georgia, "Songti SC", serif;
+  font-size: 40rpx;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.bpm-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  min-width: 220rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 12rpx;
+  transition: opacity 0.1s ease, transform 0.1s ease, background 0.1s ease;
+}
+
+.bpm-display-hover,
+.bpm-display-pressed {
+  background: var(--surface);
+  opacity: 0.9;
+  transform: scale(0.98);
+}
+
+.bpm-value {
+  color: var(--primary);
+  font-family: "Songti SC", "STSong", Georgia, serif;
+  font-size: 96rpx;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.bpm-label {
+  color: var(--muted);
+  font-size: 22rpx;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.tap-hint {
+  color: var(--muted);
+  font-size: 24rpx;
+}
+
+.signature-row {
+  display: flex;
+  gap: 16rpx;
+}
+
+.sig-pill {
+  min-width: 88rpx;
+  padding: 12rpx 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 24rpx;
+  font-weight: 700;
+  border: 1rpx solid var(--line);
+  border-radius: 4rpx;
+  background: transparent;
+}
+
+.sig-pill-active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(154, 77, 56, 0.06);
+}
+
+.beat-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28rpx;
+}
+
+.beat-circle {
+  position: relative;
+  width: 184rpx;
+  height: 184rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3rpx solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+}
+
+.beat-circle.running {
+  border-color: var(--primary);
+}
+
+.beat-circle.pulse {
+  animation: metronomePulse 120ms ease-out;
+}
+
+@keyframes metronomePulse {
+  0% { transform: scale(1.08); border-color: var(--accent); background: rgba(154, 77, 56, 0.06); }
+  100% { transform: scale(1); border-color: var(--primary); background: transparent; }
+}
+
+.beat-number {
+  color: var(--primary);
+  font-family: "Songti SC", "STSong", Georgia, serif;
+  font-size: 72rpx;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.beat-dots {
+  display: flex;
+  gap: 18rpx;
+}
+
+.beat-dot {
+  width: 18rpx;
+  height: 18rpx;
+  border-radius: 50%;
+  background: var(--line);
+}
+
+.beat-dot.active {
+  background: var(--accent);
+}
+
+.metronome-page .primary-button {
+  width: 320rpx;
+  max-width: 70vw;
+}
+
+@media (max-width: 360px) {
+  .bpm-value {
+    font-size: 80rpx;
+  }
+
+  .beat-circle {
+    width: 156rpx;
+    height: 156rpx;
+  }
+
+  .beat-number {
+    font-size: 60rpx;
+  }
+}

@@ -4,8 +4,14 @@ const assert = require('node:assert/strict');
 const { detectPitchYin } = require('../miniprogram/utils/pitch-yin');
 const { frequencyToNote, frequencyToTargetCentOffset } = require('../miniprogram/utils/note');
 const { calculatePracticeScore } = require('../miniprogram/utils/score');
-const { concatArrayBuffers, createWavFileBuffer } = require('../miniprogram/utils/audio-frame');
+const { concatArrayBuffers, createWavFileBuffer, createRingBuffer } = require('../miniprogram/utils/audio-frame');
 const { getTuningStatus } = require('../miniprogram/utils/tuning-status');
+const { getTargetNoteByKey } = require('../miniprogram/utils/target-notes');
+const { getPieceById, listPieces } = require('../miniprogram/utils/score-practice/piece-library');
+const { createTimeline, getActiveNoteIndex } = require('../miniprogram/utils/score-practice/metronome-timeline');
+const { evaluateScorePractice } = require('../miniprogram/utils/score-practice/score-evaluator');
+const { buildAdvice } = require('../miniprogram/utils/score-practice/score-feedback');
+const { buildStaffScore, getStaffY, getLedgerLines, parsePitch } = require('../miniprogram/utils/score-practice/staff-layout');
 
 function sineWave(frequency, sampleRate = 44100, seconds = 0.16) {
   const length = Math.floor(sampleRate * seconds);
@@ -45,6 +51,19 @@ test('frequencyToTargetCentOffset compares against selected target note', () => 
   assert.ok(frequencyToTargetCentOffset(442, 440) > 0);
   assert.ok(frequencyToTargetCentOffset(438, 440) < 0);
   assert.ok(Math.abs(frequencyToTargetCentOffset(293.66, 293.66)) < 0.001);
+});
+
+test('violin target notes use accurate open string frequencies', () => {
+  const cases = [
+    ['G3', 196.0],
+    ['D4', 293.6647679174076],
+    ['A4', 440.0],
+    ['E5', 659.2551138257398],
+  ];
+
+  for (const [key, expectedFrequency] of cases) {
+    assert.ok(Math.abs(getTargetNoteByKey(key).frequency - expectedFrequency) < 1e-9);
+  }
 });
 
 test('getTuningStatus highlights the in-tune range and tuning direction', () => {
@@ -103,4 +122,442 @@ test('createWavFileBuffer wraps pcm bytes with a wav header', () => {
   assert.equal(text(36, 4), 'data');
   assert.equal(view.getUint32(40, true), 6);
   assert.deepEqual(Array.from(bytes.slice(44)), [1, 2, 3, 4, 5, 6]);
+});
+
+test('score practice evaluator scores matched notes and penalizes misses', () => {
+  const piece = getPieceById('scale_combo_b_major_g_minor');
+  const timeline = createTimeline(piece, { createdAt: 1000 });
+  const frames = [
+    { frequency: 246.94, confidence: 0.9, timestamp: timeline.startTimestamp + 20 },
+    { frequency: 277.18, confidence: 0.92, timestamp: timeline.startTimestamp + timeline.beatDurationMs + 10 },
+    { frequency: 311.13, confidence: 0.9, timestamp: timeline.startTimestamp + timeline.beatDurationMs * 2 + 10 },
+    { frequency: 329.63, confidence: 0.9, timestamp: timeline.startTimestamp + timeline.beatDurationMs * 3 + 10 },
+  ];
+
+  const result = evaluateScorePractice(frames, timeline);
+  assert.equal(result.noteResults[0].matched, true);
+  assert.equal(result.noteResults[4].issueTags.includes('missed'), true);
+  assert.ok(result.summaryScores.completionRate < 0.5);
+  assert.ok(result.summaryScores.totalScore < result.summaryScores.pitchScore);
+});
+
+test('score practice evaluator flags late and short notes', () => {
+  const piece = getPieceById('scale_combo_b_major_g_minor');
+  const timeline = createTimeline(piece, { createdAt: 1000 });
+  // With systemDelayMs compensation, the timestamp must exceed
+  // expectedStart + timingTolerance + effectiveSystemDelay to trigger "late".
+  const lateTime = timeline.startTimestamp + timeline.windows[0].expectedStartMs + timeline.windows[0].timingToleranceMs + 200;
+  const result = evaluateScorePractice(
+    [
+      { frequency: timeline.windows[0].note.targetFrequency, confidence: 0.9, timestamp: lateTime },
+      { frequency: timeline.windows[1].note.targetFrequency, confidence: 0.9, timestamp: timeline.startTimestamp + timeline.windows[1].expectedStartMs + 10 },
+    ],
+    timeline
+  );
+
+  assert.equal(result.noteResults[0].issueTags.includes('late'), true);
+  assert.equal(result.noteResults[0].issueTags.includes('too-short'), true);
+});
+
+test('score practice evaluator flags early notes inside timing tolerance window', () => {
+  const piece = getPieceById('vivaldi_rv356_excerpt');
+  const timeline = createTimeline(piece, { createdAt: 1000 });
+  const firstWindow = timeline.windows[0];
+  const earlyTime =
+    timeline.startTimestamp +
+    firstWindow.expectedStartMs -
+    firstWindow.timingToleranceMs +
+    20;
+  const result = evaluateScorePractice(
+    [
+      { frequency: 659.25, confidence: 0.9, timestamp: earlyTime },
+      { frequency: 659.25, confidence: 0.9, timestamp: earlyTime + 120 },
+    ],
+    timeline
+  );
+
+  assert.equal(result.noteResults[0].matched, true);
+  assert.equal(result.noteResults[0].timingOffsetMs < 0, true);
+  assert.equal(result.noteResults[0].issueTags.includes('early'), true);
+});
+
+test('score practice timeline can evaluate a selected note range', () => {
+  const piece = getPieceById('twinkle_twinkle_mvp');
+  const timeline = createTimeline(piece, {
+    createdAt: 1000,
+    startNoteIndex: 7,
+    endNoteIndex: 13,
+  });
+
+  assert.equal(timeline.range.startNoteIndex, 7);
+  assert.equal(timeline.range.endNoteIndex, 13);
+  assert.equal(timeline.range.isFullPiece, false);
+  assert.equal(timeline.windows.length, 7);
+  assert.equal(timeline.windows[0].noteIndex, 7);
+  assert.equal(timeline.windows[0].sequenceIndex, 0);
+  assert.equal(timeline.windows[0].expectedStartMs, 0);
+  assert.equal(timeline.getExpectedTimeForNote(7), timeline.startTimestamp);
+  assert.equal(getActiveNoteIndex(timeline, timeline.startTimestamp + 20), 7);
+  assert.equal(timeline.getWindowForNote(13).sequenceIndex, 6);
+});
+
+test('score practice evaluator completion rate is scoped to selected range', () => {
+  const piece = getPieceById('twinkle_twinkle_mvp');
+  const timeline = createTimeline(piece, {
+    createdAt: 1000,
+    startNoteIndex: 7,
+    endNoteIndex: 9,
+  });
+  const result = evaluateScorePractice(
+    [
+      { frequency: 349.23, confidence: 0.9, timestamp: timeline.startTimestamp + 20 },
+      {
+        frequency: 349.23,
+        confidence: 0.9,
+        timestamp: timeline.startTimestamp + timeline.beatDurationMs + 20,
+      },
+    ],
+    timeline
+  );
+
+  assert.equal(result.noteResults.length, 3);
+  assert.equal(result.noteResults[0].noteIndex, 7);
+  assert.equal(result.noteResults[1].noteIndex, 8);
+  assert.equal(result.noteResults[2].noteIndex, 9);
+  assert.equal(result.summaryScores.completionRate, 0.67);
+});
+
+test('score feedback aggregates repeated issues into advice text', () => {
+  const { advice, feedbackTags } = buildAdvice([
+    { issueTags: ['early'] },
+    { issueTags: ['early'] },
+    { issueTags: ['early'] },
+    { issueTags: ['pitch-high'] },
+  ]);
+
+  assert.ok(advice.includes('节奏偏抢'));
+  assert.equal(feedbackTags.includes('early'), true);
+});
+
+test('staff layout maps treble notes to y positions, ledger lines, and accidentals', () => {
+  assert.equal(getStaffY({ pitch: 'C', octave: 4 }), 122);
+  assert.deepEqual(getLedgerLines(122), [122]);
+  assert.equal(getStaffY({ pitch: 'B', octave: 3 }), 131);
+  assert.deepEqual(getLedgerLines(131), [122]);
+  assert.equal(getStaffY({ pitch: 'G', octave: 5 }), 23);
+  assert.deepEqual(getLedgerLines(23), []);
+  assert.equal(getStaffY({ pitch: 'F#', octave: 5 }), 32);
+  assert.deepEqual(parsePitch('F#'), { letter: 'F', accidental: '#' });
+  assert.equal(getStaffY({ pitch: 'Bb', octave: 4 }), 68);
+  assert.deepEqual(parsePitch('Bb'), { letter: 'B', accidental: 'b' });
+  assert.equal(getStaffY({ pitch: 'Eb', octave: 5 }), 41);
+  assert.deepEqual(parsePitch('Eb'), { letter: 'E', accidental: 'b' });
+});
+
+test('staff layout generates measure bars from note beats', () => {
+  const piece = getPieceById('twinkle_twinkle_mvp');
+  const score = buildStaffScore(piece);
+
+  assert.deepEqual(
+    score.measureBars.map((bar) => bar.beat),
+    [4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48]
+  );
+  assert.deepEqual(
+    score.measureBars.map((bar) => bar.x),
+    [290, 506, 722, 938, 1154, 1370, 1586, 1802, 2018, 2234, 2450, 2666]
+  );
+  assert.equal(score.notes[0].active, false);
+  assert.equal(buildStaffScore(piece, { activeNoteIndex: 2 }).notes[2].active, true);
+});
+
+test('staff layout wraps score into two-measure systems', () => {
+  const piece = getPieceById('twinkle_twinkle_mvp');
+  const score = buildStaffScore(piece, {
+    layoutMode: 'systems',
+    measuresPerLine: 2,
+    activeNoteIndex: 8,
+  });
+
+  assert.equal(score.isSystems, true);
+  assert.equal(score.systems.length, 6);
+  assert.deepEqual(
+    score.systems.map((system) => [system.beatStart, system.beatEnd]),
+    [
+      [0, 8],
+      [8, 16],
+      [16, 24],
+      [24, 32],
+      [32, 40],
+      [40, 48],
+    ]
+  );
+  assert.deepEqual(
+    score.systems[0].measureBars.map((bar) => [bar.beat, bar.x]),
+    [
+      [4, 290],
+      [8, 506],
+    ]
+  );
+  assert.deepEqual(
+    score.systems[1].measureBars.map((bar) => [bar.beat, bar.x]),
+    [
+      [12, 290],
+      [16, 506],
+    ]
+  );
+  assert.equal(score.systems[0].notes.length, 7);
+  assert.equal(score.systems[1].notes.length, 7);
+  assert.equal(score.systems[1].notes[0].label, 'F4');
+  assert.equal(score.systems[1].notes[0].x, 74);
+  assert.equal(score.systems[1].notes[0].active, false);
+  assert.equal(score.systems[1].notes[1].label, 'F4');
+  assert.equal(score.systems[1].notes[1].active, true);
+});
+
+test('staff layout can wrap score into fixed eight-beat systems', () => {
+  const piece = getPieceById('twinkle_twinkle_mvp');
+  const score = buildStaffScore(piece, {
+    layoutMode: 'systems',
+    beatsPerLine: 8,
+    beatWidth: 76,
+    activeNoteIndex: 8,
+  });
+
+  assert.equal(score.systems.length, 6);
+  assert.deepEqual(
+    score.systems.map((system) => [system.beatStart, system.beatEnd]),
+    [
+      [0, 8],
+      [8, 16],
+      [16, 24],
+      [24, 32],
+      [32, 40],
+      [40, 48],
+    ]
+  );
+  assert.equal(score.systems[0].notes.length, 7);
+  assert.equal(score.systems[1].notes.length, 7);
+  assert.equal(score.systems[1].notes[0].label, 'F4');
+  assert.equal(score.systems[1].notes[0].active, false);
+  assert.equal(score.systems[1].notes[1].label, 'F4');
+  assert.equal(score.systems[1].notes[1].active, true);
+});
+
+test('staff layout prefers display labels for enharmonic spellings', () => {
+  const score = buildStaffScore(getPieceById('scale_combo_b_major_g_minor'));
+
+  assert.equal(score.notes[24].label, 'Bb3');
+  assert.equal(score.notes[24].accidental, 'b');
+  assert.equal(score.notes[24].y, 131);
+  assert.equal(score.notes[27].label, 'Eb4');
+  assert.equal(score.notes[27].accidental, 'b');
+  assert.equal(score.notes[27].y, 104);
+});
+
+test('twinkle piece is available and works with the score practice timeline', () => {
+  const pieces = listPieces();
+  const piece = getPieceById('twinkle_twinkle_mvp');
+
+  assert.equal(pieces.length, 3);
+  assert.ok(piece);
+  assert.equal(piece.keySignature, 'C 大调');
+  assert.equal(piece.clef, 'treble');
+  assert.equal(piece.notes.length, 42);
+  assert.deepEqual(
+    piece.notes.map((note) => note.label),
+    [
+      'C4', 'C4', 'G4', 'G4', 'A4', 'A4', 'G4',
+      'F4', 'F4', 'E4', 'E4', 'D4', 'D4', 'C4',
+      'G4', 'G4', 'F4', 'F4', 'E4', 'E4', 'D4',
+      'G4', 'G4', 'F4', 'F4', 'E4', 'E4', 'D4',
+      'C4', 'C4', 'G4', 'G4', 'A4', 'A4', 'G4',
+      'F4', 'F4', 'E4', 'E4', 'D4', 'D4', 'C4',
+    ]
+  );
+
+  const timeline = createTimeline(piece, { createdAt: 1000 });
+  const musicalDurationSec = Math.round(
+    timeline.windows[timeline.windows.length - 1].expectedEndMs / 1000
+  );
+  assert.equal(piece.estimatedDurationSec, musicalDurationSec);
+
+  const result = evaluateScorePractice(
+    [
+      { frequency: 261.63, confidence: 0.9, timestamp: timeline.startTimestamp + 20 },
+      { frequency: 261.63, confidence: 0.9, timestamp: timeline.startTimestamp + timeline.beatDurationMs + 20 },
+      { frequency: 392, confidence: 0.9, timestamp: timeline.startTimestamp + timeline.beatDurationMs * 2 + 20 },
+    ],
+    timeline
+  );
+  assert.equal(result.noteResults[0].matched, true);
+  assert.equal(result.noteResults[3].matched, false);
+});
+
+// --- New tests for review improvements ---
+
+test('YIN DC removal rejects constant DC offset', () => {
+  const dcBuffer = new Float32Array(4096);
+  for (let i = 0; i < dcBuffer.length; i += 1) {
+    dcBuffer[i] = 0.5;
+  }
+  const result = detectPitchYin(dcBuffer, 44100);
+  assert.equal(result.frequency, null, 'pure DC should not produce a pitch');
+});
+
+test('YIN detects low G3 even when flat by 30 cents', () => {
+  const g3Flat = 196 * Math.pow(2, -30 / 1200);
+  const result = detectPitchYin(sineWave(g3Flat), 44100);
+  assert.ok(result.frequency, 'should detect flat G3');
+  assert.ok(Math.abs(result.frequency - g3Flat) < 2, `flat G3 frequency drift: got ${result.frequency}, expected ~${g3Flat.toFixed(1)}`);
+});
+
+test('YIN with minFrequency=160 still detects G3', () => {
+  const result = detectPitchYin(sineWave(196), 44100, 0.16);
+  assert.ok(result.frequency, 'should detect G3 with lowered minFrequency');
+  assert.ok(Math.abs(result.frequency - 196) < 1.5);
+});
+
+test('ring buffer appends and retrieves recent samples', () => {
+  const ring = createRingBuffer(10);
+  ring.append(new Float32Array([1, 2, 3]));
+  ring.append(new Float32Array([4, 5, 6]));
+  assert.equal(ring.length(), 6);
+  const recent = ring.getRecent(5);
+  assert.deepEqual(Array.from(recent), [2, 3, 4, 5, 6]);
+
+  ring.append(new Float32Array([7, 8]));
+  assert.equal(ring.length(), 8);
+  const full = ring.getRecent(8);
+  assert.deepEqual(Array.from(full), [1, 2, 3, 4, 5, 6, 7, 8]);
+});
+
+test('ring buffer wraps around correctly', () => {
+  const ring = createRingBuffer(5);
+  ring.append(new Float32Array([1, 2, 3, 4, 5]));
+  ring.append(new Float32Array([6, 7]));
+  assert.equal(ring.length(), 5);
+  const recent = ring.getRecent(5);
+  assert.deepEqual(Array.from(recent), [3, 4, 5, 6, 7]);
+});
+
+test('ring buffer clear resets state', () => {
+  const ring = createRingBuffer(10);
+  ring.append(new Float32Array([1, 2, 3]));
+  ring.clear();
+  assert.equal(ring.length(), 0);
+  const recent = ring.getRecent(5);
+  assert.equal(recent.length, 0);
+});
+
+test('timeline uses Map for O(1) getWindowForNote', () => {
+  const piece = getPieceById('twinkle_twinkle_mvp');
+  const timeline = createTimeline(piece, { createdAt: 1000 });
+  const w = timeline.getWindowForNote(5);
+  assert.ok(w, 'should find window by noteIndex');
+  assert.equal(w.noteIndex, 5);
+  assert.equal(timeline.getWindowForNote(9999), null);
+});
+
+test('getActiveNoteIndex uses binary search with boundary grace', () => {
+  const piece = getPieceById('twinkle_twinkle_mvp');
+  const timeline = createTimeline(piece, { createdAt: 1000 });
+  const grace = timeline.boundaryGraceMs || 0;
+  assert.ok(grace > 0, 'boundary grace should be positive');
+  // At the exact expectedEndMs of window 0, grace should still return window 0
+  const boundaryTime = timeline.startTimestamp + timeline.windows[0].expectedEndMs;
+  const indexAtBoundary = getActiveNoteIndex(timeline, boundaryTime);
+  assert.equal(indexAtBoundary, timeline.windows[0].noteIndex);
+});
+
+test('timingOffsetMs is compensated for system delay', () => {
+  const piece = getPieceById('scale_combo_b_major_g_minor');
+  const timeline = createTimeline(piece, { createdAt: 1000 });
+  const w0 = timeline.windows[0];
+  // Frame at expectedStart + 50ms should NOT be flagged late after compensation
+  const frameTime = timeline.startTimestamp + w0.expectedStartMs + 50;
+  const result = evaluateScorePractice(
+    [{ frequency: w0.note.targetFrequency, confidence: 0.9, timestamp: frameTime }],
+    timeline
+  );
+  assert.equal(result.noteResults[0].issueTags.includes('late'), false,
+    'frame 50ms after expected start should not be late with delay compensation');
+});
+
+test('pitchToleranceCent is 30 by default (tighter than before)', () => {
+  const piece = getPieceById('scale_combo_b_major_g_minor');
+  const timeline = createTimeline(piece, { createdAt: 1000 });
+  const w0 = timeline.windows[0];
+  // Create a frame that's 35 cents sharp (above 30-cent threshold)
+  const sharpFreq = w0.note.targetFrequency * Math.pow(2, 35 / 1200);
+  const frameTime = timeline.startTimestamp + w0.expectedStartMs + 20;
+  const result = evaluateScorePractice(
+    [{ frequency: sharpFreq, confidence: 0.9, timestamp: frameTime }],
+    timeline
+  );
+  assert.equal(result.noteResults[0].issueTags.includes('pitch-high'), true,
+    '35-cent offset should trigger pitch-high with 30-cent threshold');
+});
+
+test('completionRate does not double-penalize missed notes', () => {
+  const piece = getPieceById('twinkle_twinkle_mvp');
+  const timeline = createTimeline(piece, { createdAt: 1000, startNoteIndex: 0, endNoteIndex: 4 });
+  // Provide only 1 frame for the first note, rest are missed
+  const w0 = timeline.windows[0];
+  const result = evaluateScorePractice(
+    [{ frequency: w0.note.targetFrequency, confidence: 0.9, timestamp: timeline.startTimestamp + 20 }],
+    timeline
+  );
+  const s = result.summaryScores;
+  // pitchScore should only average matched notes, not be dragged down by missed=0
+  assert.ok(s.pitchScore > 0, 'pitchScore should be > 0 for the matched note');
+  assert.ok(s.completionRate < 1, 'completionRate should reflect 1/5 matched');
+  // The effective penalty should be ~completionRate, not ~completionRate^2
+  const expectedApproxTotal = Math.round((s.pitchScore * 0.6 + s.rhythmScore * 0.4) * s.completionRate);
+  assert.equal(s.totalScore, expectedApproxTotal);
+});
+
+test('holdRatio compensation scales with note duration', () => {
+  const piece = getPieceById('scale_combo_b_major_g_minor');
+  const timeline = createTimeline(piece, { createdAt: 1000 });
+  const w0 = timeline.windows[0];
+  // Create a very short capture (just 1 frame at start)
+  const result = evaluateScorePractice(
+    [{ frequency: w0.note.targetFrequency, confidence: 0.9, timestamp: timeline.startTimestamp + 20 }],
+    timeline
+  );
+  // The holdRatio should reflect the scaled compensation, not a fixed 120ms
+  assert.ok(result.noteResults[0].holdRatio < 1);
+  assert.ok(result.noteResults[0].holdRatio > 0);
+});
+
+test('feedback advice includes severity modifiers', () => {
+  const { advice } = buildAdvice([
+    { issueTags: ['early'] },
+    { issueTags: ['early'] },
+    { issueTags: ['early'] },
+    { issueTags: ['early'] },
+    { issueTags: ['early'] },
+  ]);
+  assert.ok(advice.includes('略有'), '5-note run should use "略有" severity');
+});
+
+test('feedback advice uses "明显" for medium severity', () => {
+  const notes = [];
+  for (let i = 0; i < 10; i += 1) {
+    notes.push({ issueTags: ['pitch-high'] });
+  }
+  for (let i = 0; i < 5; i += 1) {
+    notes.push({ issueTags: [] });
+  }
+  const { advice } = buildAdvice(notes);
+  assert.ok(advice.includes('明显'), '10-note run should use "明显" severity');
+});
+
+test('feedback advice uses "严重" for high severity', () => {
+  const notes = [];
+  for (let i = 0; i < 20; i += 1) {
+    notes.push({ issueTags: ['pitch-low'] });
+  }
+  const { advice } = buildAdvice(notes);
+  assert.ok(advice.includes('严重'), '20-note run should use "严重" severity');
 });

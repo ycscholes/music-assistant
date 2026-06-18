@@ -9,8 +9,17 @@
 - 音名换算：按 A4=440Hz 转换为音名、频率和 cent 偏差。
 - 基础评分：音准分 70% + 稳定性分 30%。
 - 练习闭环：首页、检测页、结果页、历史记录页。
+- 曲谱评测：内置练习曲、固定 BPM 时间线、本地五线谱显示、当前音符高亮、曲谱评测结果页。
 - CloudBase 数据：通过 `wx.cloud.database()` 保存 `practice_sessions` 结构化记录。
 - 隐私默认：不保存原始音频，不上传原始音频到第三方服务。
+
+## 曲谱评测显示规则
+
+- 曲谱准备页继续使用 `staff-score` 组件从本地 `notes` 数据渲染预览谱。
+- 曲谱评测页优先使用构建期生成的正式谱面 PNG 系统图，每行固定 8 个节拍，不在小程序运行时加载 VexFlow。
+- 生成资产位于 `miniprogram/images/scores/<pieceId>/system-000.png`，元数据位于 `miniprogram/utils/score-practice/generated-score-assets.js`。
+- 当前评测音符通过元数据 `noteBoxes` 在图片上叠加高亮，随固定 BPM 时间线推进并自动切换当前系统。
+- 如果某曲目缺少生成资产，评测页会回退到原有 `staff-score` WXML 简化谱面。
 
 ## 项目结构
 
@@ -23,6 +32,12 @@ miniprogram/
     detect/     音准检测
     result/     练习结果
     history/    练习记录
+    score-list/ 曲谱列表
+    score-prepare/ 曲谱准备
+    score-practice/ 曲谱评测
+    score-result/ 曲谱评测结果
+  components/
+    staff-score/ 本地五线谱组件
   services/
     practice-store.js
   utils/
@@ -30,6 +45,14 @@ miniprogram/
     note.js
     pitch-yin.js
     score.js
+    score-practice/
+      generated-score-assets.js
+      piece-library.js
+      score-assets.js
+      staff-layout.js
+      metronome-timeline.js
+      score-evaluator.js
+      score-feedback.js
 cloudfunctions/
   getOpenId/
 test/
@@ -56,8 +79,22 @@ wx.cloud.init({
 ## 本地验证
 
 ```bash
+npm run generate:score-assets
 npm test
 npm run check:js
+```
+
+## 开发环境
+
+- 微信开发者工具已安装，CLI 路径为 `/Applications/wechatwebdevtools.app/Contents/MacOS/cli`。
+- `codex` CLI 已安装，当前全局 MCP 包含 `github`、`playwright`、`context7`、`openaiDeveloperDocs`。
+- `claude` CLI 已安装，建议使用用户级 MCP 配置，并在本项目加载 `.claude/settings.local.json`。
+- CloudBase 与小程序开发规则以 `AGENTS.md`、`CLAUDE.md` 和 `rules/` 目录为准。
+
+## 打开项目
+
+```bash
+/Applications/wechatwebdevtools.app/Contents/MacOS/cli open --project /Users/paul/workspace/music-assistant
 ```
 
 ## 真机验收

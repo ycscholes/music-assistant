@@ -1,0 +1,57 @@
+<view class="staff-score {{fullscreen ? 'fullscreen' : ''}} {{compact ? 'compact' : ''}}">
+  <view class="staff-meta">
+    <text>{{score.keySignature || 'C 大调'}}</text>
+    <text>{{score.timeSignature}}</text>
+  </view>
+
+  <scroll-view wx:if="{{score.isSystems}}" class="staff-systems" scroll-y enable-flex>
+    <view wx:for="{{score.systems}}" wx:key="index" class="staff-system">
+      <view class="staff-canvas system-canvas" style="width: {{item.width}}rpx;">
+        <text class="clef">𝄞</text>
+        <view wx:for="{{item.lineYs}}" wx:for-item="lineY" wx:key="*this" class="staff-line" style="top: {{lineY}}rpx;"></view>
+
+        <view wx:for="{{item.measureBars}}" wx:for-item="bar" wx:key="beat" class="measure-bar" style="left: {{bar.x}}rpx;"></view>
+
+        <view
+          wx:for="{{item.notes}}"
+          wx:for-item="note"
+          wx:key="index"
+          class="score-note {{note.active ? 'active' : ''}} {{note.long ? 'long' : ''}} {{note.inRange ? 'in-range' : ''}} {{note.rangeStart ? 'range-start' : ''}} {{note.rangeEnd ? 'range-end' : ''}} {{selectionMode ? 'selectable' : ''}}"
+          style="left: {{note.x}}rpx; top: {{note.y}}rpx;"
+          data-note-index="{{note.index}}"
+          bindtap="selectNote"
+        >
+          <text wx:if="{{note.accidental}}" class="accidental">{{note.accidental}}</text>
+          <view wx:for="{{note.ledgerLines}}" wx:for-item="ledger" wx:key="y" class="ledger-line" style="top: {{ledger.y - note.y}}rpx;"></view>
+          <view class="note-head" style="width: {{note.headWidth}}rpx;"></view>
+          <view class="stem {{note.stemDirection}}" style="top: {{note.stemY - note.y}}rpx;"></view>
+          <text class="note-label">{{note.label}}</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <scroll-view wx:else class="staff-scroll" scroll-x enable-flex>
+    <view class="staff-canvas" style="width: {{score.width}}rpx;">
+      <text class="clef">𝄞</text>
+      <view wx:for="{{score.lineYs}}" wx:key="*this" class="staff-line" style="top: {{item}}rpx;"></view>
+
+      <view wx:for="{{score.measureBars}}" wx:key="beat" class="measure-bar" style="left: {{item.x}}rpx;"></view>
+
+      <view
+        wx:for="{{score.notes}}"
+        wx:key="index"
+        class="score-note {{item.active ? 'active' : ''}} {{item.long ? 'long' : ''}} {{item.inRange ? 'in-range' : ''}} {{item.rangeStart ? 'range-start' : ''}} {{item.rangeEnd ? 'range-end' : ''}} {{selectionMode ? 'selectable' : ''}}"
+        style="left: {{item.x}}rpx; top: {{item.y}}rpx;"
+        data-note-index="{{item.index}}"
+        bindtap="selectNote"
+      >
+        <text wx:if="{{item.accidental}}" class="accidental">{{item.accidental}}</text>
+        <view wx:for="{{item.ledgerLines}}" wx:for-item="ledger" wx:key="y" class="ledger-line" style="top: {{ledger.y - item.y}}rpx;"></view>
+        <view class="note-head" style="width: {{item.headWidth}}rpx;"></view>
+        <view class="stem {{item.stemDirection}}" style="top: {{item.stemY - item.y}}rpx;"></view>
+        <text class="note-label">{{item.label}}</text>
+      </view>
+    </view>
+  </scroll-view>
+</view>

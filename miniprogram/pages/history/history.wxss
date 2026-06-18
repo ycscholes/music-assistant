@@ -7,16 +7,20 @@
 }
 
 .history-page {
-  gap: 24rpx;
+  gap: 34rpx;
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
 }
 
 .header {
-  gap: 10rpx;
+  gap: 14rpx;
+  padding: 36rpx 0 24rpx;
+  border-bottom: 1rpx solid var(--line);
 }
 
 .title {
   color: var(--primary);
-  font-size: 44rpx;
+  font-family: "Songti SC", "STSong", Georgia, serif;
+  font-size: 54rpx;
   font-weight: 800;
 }
 
@@ -31,6 +35,7 @@
   gap: 20rpx;
   color: var(--muted);
   line-height: 1.5;
+  background: transparent;
 }
 
 .error {
@@ -38,7 +43,8 @@
 }
 
 .record-list {
-  gap: 18rpx;
+  gap: 0;
+  border-top: 1rpx solid var(--line);
 }
 
 .record {
@@ -46,11 +52,43 @@
   flex-direction: row;
   align-items: center;
   gap: 24rpx;
+  padding: 26rpx 0 26rpx 18rpx;
+  border: none;
+  border-bottom: 1rpx solid var(--line);
+  border-left: 6rpx solid transparent;
+  background: transparent;
+}
+
+.record.record-basic {
+  border-left-color: var(--accent);
+}
+
+.record.record-score-practice {
+  border-left-color: var(--success);
+}
+
+.record-badge {
+  display: inline-block;
+  font-size: 20rpx;
+  font-weight: 700;
+  padding: 2rpx 10rpx;
+  border-radius: 4rpx;
+}
+
+.badge-basic {
+  color: var(--accent);
+  background: rgba(154, 77, 56, 0.08);
+}
+
+.badge-score {
+  color: var(--success);
+  background: rgba(94, 111, 78, 0.08);
 }
 
 .record-score {
   color: var(--accent);
-  font-size: 52rpx;
+  font-family: Georgia, "Songti SC", serif;
+  font-size: 58rpx;
   font-weight: 800;
 }
 

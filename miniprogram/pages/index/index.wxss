@@ -1,82 +1,129 @@
 .home-page {
   display: flex;
   flex-direction: column;
-  gap: 28rpx;
+  gap: 42rpx;
+  min-height: 100vh;
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
 }
 
 .hero {
-  padding: 48rpx 0 24rpx;
+  padding: 58rpx 0 8rpx;
   display: flex;
   flex-direction: column;
-  gap: 14rpx;
+  gap: 18rpx;
 }
 
 .eyebrow {
-  color: var(--accent);
-  font-size: 24rpx;
+  color: var(--warning);
+  font-size: 20rpx;
   font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
 .title {
   color: var(--primary);
-  font-size: 56rpx;
+  font-family: "Songti SC", "STSong", Georgia, serif;
+  font-size: 62rpx;
   font-weight: 800;
   line-height: 1.1;
 }
 
+.title-rule {
+  width: 152rpx;
+  height: 1rpx;
+  background: var(--primary);
+}
+
 .subtitle {
   color: var(--muted);
-  font-size: 28rpx;
+  font-size: 27rpx;
   line-height: 1.6;
 }
 
-.action-panel {
+.practice-console {
   display: flex;
   flex-direction: column;
-  gap: 24rpx;
+  gap: 34rpx;
+  padding: 34rpx 0 28rpx;
+  border-top: 1rpx solid var(--line);
+  border-bottom: 1rpx solid var(--line);
 }
 
-.metric-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20rpx;
-}
-
-.metric {
-  border: 2rpx solid var(--line);
-  border-radius: 8rpx;
-  padding: 20rpx;
-}
-
-.metric-value {
-  display: block;
-  color: var(--primary);
-  font-size: 34rpx;
-  font-weight: 800;
-}
-
-.metric-label {
-  display: block;
-  margin-top: 8rpx;
-  color: var(--muted);
-  font-size: 24rpx;
-}
-
-.guide {
+.target-block {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
-  padding: 12rpx 4rpx;
+  gap: 10rpx;
 }
 
-.guide-title {
+.target-label {
+  color: var(--warning);
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.target-value {
+  display: block;
+  font-family: "Songti SC", "STSong", Georgia, serif;
   color: var(--primary);
-  font-size: 32rpx;
+  font-size: 74rpx;
   font-weight: 800;
+  line-height: 1;
 }
 
-.guide-item {
+.target-copy {
+  display: block;
   color: var(--muted);
   font-size: 26rpx;
-  line-height: 1.5;
+}
+
+.start-button {
+  margin-top: 6rpx;
+}
+
+.status-strip {
+  display: flex;
+  justify-content: space-between;
+  gap: 20rpx;
+  color: var(--muted);
+  font-size: 22rpx;
+}
+
+.secondary-nav {
+  border-top: 1rpx solid var(--line);
+}
+
+.nav-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 24rpx;
+  padding: 28rpx 0;
+  border-bottom: 1rpx solid var(--line);
+}
+
+.nav-title {
+  color: var(--primary);
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.nav-meta {
+  color: var(--muted);
+  font-size: 24rpx;
+  text-align: right;
+}
+
+.nav-row-active {
+  background: rgba(245, 239, 227, 0.5);
+}
+
+@media (max-width: 360px) {
+  .target-value {
+    font-size: 60rpx;
+  }
+
+  .title {
+    font-size: 50rpx;
+  }
 }

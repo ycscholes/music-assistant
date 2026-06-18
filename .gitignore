@@ -5,6 +5,7 @@ node_modules/
 .claude/
 .codex/
 project.private.config.json
+.env.local
 
 # Logs and build outputs
 *.log

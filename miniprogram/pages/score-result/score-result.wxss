@@ -1,0 +1,116 @@
+.score-result-page,
+.score-grid,
+.actions,
+.issue-list,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+}
+
+.score-result-page,
+.score-grid,
+.actions,
+.issue-list,
+.empty-state {
+  gap: 24rpx;
+}
+
+.score-panel {
+  padding: 46rpx 0 36rpx;
+  border-top: 1rpx solid var(--primary);
+  border-bottom: 1rpx solid var(--primary);
+  color: var(--primary);
+}
+
+.score {
+  display: block;
+  font-family: "Songti SC", "STSong", Georgia, serif;
+  font-size: 104rpx;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+}
+
+.score-label {
+  display: block;
+  margin-top: 12rpx;
+  color: var(--muted);
+  font-size: 26rpx;
+  text-align: center;
+}
+
+.score-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  padding: 0;
+  background: transparent;
+  border-left: none;
+  border-right: none;
+}
+
+.score-item {
+  border: none;
+  border-bottom: 1rpx solid var(--line);
+  padding: 22rpx 0;
+  text-align: center;
+}
+
+.score-value,
+.section-title,
+.title {
+  color: var(--primary);
+  font-family: "Songti SC", "STSong", Georgia, serif;
+  font-size: 34rpx;
+  font-weight: 800;
+}
+
+.item-label,
+.body-copy,
+.subtitle,
+.issue-item {
+  color: var(--muted);
+  font-size: 26rpx;
+  line-height: 1.6;
+}
+
+.score-value {
+  display: block;
+  color: var(--accent);
+  font-family: Georgia, "Songti SC", serif;
+}
+
+.score-result-page > .panel {
+  background: transparent;
+  border-left: none;
+  border-right: none;
+}
+
+.issue-item {
+  display: block;
+  padding-left: 18rpx;
+  border-left: 5rpx solid var(--accent);
+}
+
+.actions .secondary-button {
+  border: 1.5rpx solid rgba(23, 22, 20, 0.24);
+}
+
+.score-result-page > .actions {
+  align-items: center;
+  gap: 14rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+}
+
+.score-result-page > .actions .primary-button,
+.score-result-page > .actions .secondary-button,
+.empty-state .primary-button {
+  width: 100%;
+  max-width: 520rpx;
+}
+
+@media (max-width: 360px) {
+  .score {
+    font-size: 88rpx;
+  }
+}

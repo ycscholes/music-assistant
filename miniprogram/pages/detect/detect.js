@@ -7,10 +7,20 @@ const { getTuningStatus } = require('../../utils/tuning-status');
 const SAMPLE_RATE = 44100;
 const ANALYSIS_WINDOW = 4096;
 const MAX_CHUNKS = 12;
-const UI_INTERVAL_MS = 120;
+const UI_INTERVAL_MS = 80;
 const MAX_NEEDLE_DEG = 42;
+const DEFAULT_REFERENCE_PITCH = 440;
+const NEEDLE_RANGE_PERCENT = 32;
 const DEFAULT_TARGET = getDefaultTargetNote();
-const DEFAULT_TARGET_GROUPS = buildTargetNoteGroups(DEFAULT_TARGET.key);
+const DEFAULT_TARGET_OPTIONS = buildTargetNoteOptions(DEFAULT_TARGET.key);
+
+function withReferencePitch(target, referencePitch) {
+  const ratio = referencePitch / DEFAULT_REFERENCE_PITCH;
+  return Object.assign({}, target, {
+    frequency: target.frequency * ratio,
+    referencePitch,
+  });
+}
 
 function median(values) {
   if (!values.length) {
@@ -21,47 +31,61 @@ function median(values) {
 }
 
 function buildTargetNoteOptions(activeKey) {
+  const positionMap = {
+    G3: { controlClass: 'string-control left bottom', labelClass: 'string-label left bottom' },
+    D4: { controlClass: 'string-control left top', labelClass: 'string-label left top' },
+    A4: { controlClass: 'string-control right top', labelClass: 'string-label right top' },
+    E5: { controlClass: 'string-control right bottom', labelClass: 'string-label right bottom' },
+  };
+
   return TARGET_NOTES.map((item) =>
     Object.assign({}, item, {
       active: item.key === activeKey,
       noteName: item.label.replace(/\d/g, ''),
-      buttonClass: item.key === activeKey ? 'string-button active' : 'string-button',
+      controlClass: item.key === activeKey ? `${positionMap[item.key].controlClass} active` : positionMap[item.key].controlClass,
+      labelClass: positionMap[item.key].labelClass,
     })
   );
 }
 
-function buildTargetNoteGroups(activeKey) {
-  const options = buildTargetNoteOptions(activeKey);
-  return {
-    targetNotes: options,
-    targetNotesLeft: options.slice(0, 2),
-    targetNotesRight: options.slice(2),
-  };
-}
-
-function getNeedleRotation(centOffset) {
+function getNeedlePosition(centOffset) {
   if (centOffset === null || centOffset === undefined || Number.isNaN(centOffset)) {
-    return 0;
+    return 50;
   }
   const limitedCent = Math.max(-50, Math.min(50, centOffset));
-  return Math.round((limitedCent / 50) * MAX_NEEDLE_DEG);
+  return 50 + (limitedCent / 50) * NEEDLE_RANGE_PERCENT;
+}
+
+function getNeedleColor(centOffset) {
+  if (centOffset === null || centOffset === undefined || Number.isNaN(centOffset)) {
+    return 'var(--accent)';
+  }
+  const abs = Math.abs(centOffset);
+  if (abs <= 10) {
+    return 'var(--success)';
+  }
+  return 'var(--accent)';
 }
 
 Page({
   data: {
     isRecording: false,
-    statusText: '准备调音',
-    targetNotes: DEFAULT_TARGET_GROUPS.targetNotes,
-    targetNotesLeft: DEFAULT_TARGET_GROUPS.targetNotesLeft,
-    targetNotesRight: DEFAULT_TARGET_GROUPS.targetNotesRight,
-    targetNote: DEFAULT_TARGET,
+    isStartingDetect: false,
+    reduceMotion: false,
+    statusText: '请拉一根空弦开始调音。',
+    headlineText: '请选择弦轴',
+    targetNotes: DEFAULT_TARGET_OPTIONS,
+    targetNote: withReferencePitch(DEFAULT_TARGET, DEFAULT_REFERENCE_PITCH),
+    referencePitch: DEFAULT_REFERENCE_PITCH,
+    isReference442: false,
     noteLabel: 'A',
-    detectedNoteText: '当前音：--',
+    detectedNoteText: '检测音：--',
     frequencyText: '-- Hz',
     centText: '--',
-    needleRotation: 0,
-    tuningStatusText: '等待声音',
-    tuningActionText: '请选择琴弦并启动麦克风',
+    needlePosition: 50,
+    needleColor: 'var(--accent)',
+    tuningStatusText: '准备就绪',
+    tuningActionText: '请选择弦轴',
     actionToneClass: 'action-tone waiting',
   },
 
@@ -71,28 +95,58 @@ Page({
     this.pitchFrames = [];
     this.recentFrequencies = [];
     this.lastUiAt = 0;
+    this.isStartingDetect = false;
+    try {
+      this.setData({ reduceMotion: Boolean(wx.getStorageSync('reduceMotion')) });
+    } catch (_) { /* ignore */ }
     this.bindRecorder();
+    this.startDetect();
+  },
+
+  onShow() {
+    if (!this.data.isRecording) {
+      this.startDetect();
+    }
   },
 
   selectTarget(event) {
-    const target = getTargetNoteByKey(event.currentTarget.dataset.key);
-    const targetNoteGroups = buildTargetNoteGroups(target.key);
+    const target = withReferencePitch(getTargetNoteByKey(event.currentTarget.dataset.key), this.data.referencePitch);
     this.chunks = [];
     this.recentFrequencies = [];
     this.setData({
       targetNote: target,
-      targetNotes: targetNoteGroups.targetNotes,
-      targetNotesLeft: targetNoteGroups.targetNotesLeft,
-      targetNotesRight: targetNoteGroups.targetNotesRight,
-      statusText: this.data.isRecording ? `正在调 ${target.stringName}` : `准备调 ${target.stringName}`,
+      targetNotes: buildTargetNoteOptions(target.key),
+      statusText: this.data.isRecording
+        ? `正在监听 ${target.noteName || target.label.replace(/\d/g, '')} 弦`
+        : '请拉一根空弦开始调音。',
+      headlineText: this.data.isRecording ? '正在监听，请保持长弓单音' : '请选择弦轴',
       noteLabel: target.label.replace(/\d/g, ''),
-      detectedNoteText: '当前音：--',
+      detectedNoteText: '检测音：--',
       frequencyText: '-- Hz',
       centText: '--',
-      needleRotation: 0,
-      tuningStatusText: '等待声音',
-      tuningActionText: `请拉 ${target.stringName} 空弦`,
+      needlePosition: 50,
+      needleColor: 'var(--accent)',
+      tuningStatusText: '准备就绪',
+      tuningActionText: `请拉 ${target.label.replace(/\d/g, '')} 空弦`,
       actionToneClass: 'action-tone waiting',
+    });
+  },
+
+  toggleReferencePitch() {
+    const nextReference = this.data.referencePitch === 440 ? 442 : 440;
+    const nextTarget = withReferencePitch(getTargetNoteByKey(this.data.targetNote.key), nextReference);
+    this.setData({
+      referencePitch: nextReference,
+      isReference442: nextReference === 442,
+      targetNote: nextTarget,
+      statusText: `参考频率已切换到 ${nextReference}Hz`,
+      frequencyText: '-- Hz',
+      centText: '--',
+      needlePosition: 50,
+      needleColor: 'var(--accent)',
+      tuningStatusText: '准备就绪',
+      tuningActionText: `请拉 ${nextTarget.label.replace(/\d/g, '')} 空弦`,
+      headlineText: '请选择弦轴',
     });
   },
 
@@ -112,9 +166,11 @@ Page({
 
   bindRecorder() {
     this.recorder.onStart(() => {
+      this.isStartingDetect = false;
       this.setData({
         isRecording: true,
-        statusText: '正在听音',
+        isStartingDetect: false,
+        statusText: `当前参考频率 ${this.data.referencePitch}Hz`,
       });
     });
 
@@ -123,9 +179,12 @@ Page({
     });
 
     this.recorder.onError((error) => {
+      this.isStartingDetect = false;
       this.setData({
         isRecording: false,
-        statusText: '录音失败，请检查麦克风权限',
+        isStartingDetect: false,
+        statusText: '录音失败，请检查麦克风权限。',
+        headlineText: '麦克风异常',
       });
       wx.showToast({
         title: error.errMsg || '录音失败',
@@ -142,12 +201,21 @@ Page({
   },
 
   startDetect() {
+    if (this.data.isRecording || this.isStartingDetect) {
+      return;
+    }
+
+    this.isStartingDetect = true;
+    this.setData({ isStartingDetect: true });
     wx.authorize({
       scope: 'scope.record',
       success: () => this.startRecorder(),
       fail: () => {
+        this.isStartingDetect = false;
         this.setData({
-          statusText: '需要麦克风权限才能检测音准',
+          isStartingDetect: false,
+          statusText: '调音需要麦克风权限。',
+          headlineText: '需要麦克风权限',
         });
         wx.showModal({
           title: '需要麦克风权限',
@@ -163,6 +231,14 @@ Page({
     });
   },
 
+  toggleListening() {
+    if (this.data.isRecording) {
+      this.stopDetect();
+      return;
+    }
+    this.startDetect();
+  },
+
   startRecorder() {
     this.chunks = [];
     this.pitchFrames = [];
@@ -171,14 +247,16 @@ Page({
 
     this.setData({
       noteLabel: this.data.targetNote.label.replace(/\d/g, ''),
-      detectedNoteText: '当前音：--',
+      detectedNoteText: '检测音：--',
       frequencyText: '-- Hz',
       centText: '--',
-      needleRotation: 0,
-      tuningStatusText: '等待声音',
-      tuningActionText: `请拉 ${this.data.targetNote.stringName} 空弦`,
+      needlePosition: 50,
+      needleColor: 'var(--accent)',
+      tuningStatusText: '正在监听',
+      tuningActionText: `请拉 ${this.data.targetNote.label.replace(/\d/g, '')} 空弦`,
+      headlineText: '正在监听，请保持长弓单音',
       actionToneClass: 'action-tone waiting',
-      statusText: '正在启动麦克风',
+      statusText: `当前参考频率 ${this.data.referencePitch}Hz`,
     });
 
     this.recorder.start({
@@ -193,7 +271,7 @@ Page({
 
   stopDetect() {
     if (this.data.isRecording) {
-      this.setData({ statusText: '已暂停调音' });
+      this.setData({ statusText: '调音已暂停。' });
       this.recorder.stop();
     }
   },
@@ -261,10 +339,11 @@ Page({
       this.setData({
         statusText:
           frame.rms < 0.01
-            ? `请拉 ${this.data.targetNote.label}，保持单音长弓`
-            : '置信度较低，请靠近手机并保持单音',
+            ? `请拉 ${this.data.targetNote.label.replace(/\d/g, '')} 空弦，并保持长弓单音`
+            : '识别置信度较低，请靠近手机并保持单音。',
+        headlineText: '等待稳定单音',
         tuningStatusText: '等待声音',
-        tuningActionText: `请拉 ${this.data.targetNote.stringName} 空弦`,
+        tuningActionText: `请拉 ${this.data.targetNote.label.replace(/\d/g, '')} 空弦`,
         actionToneClass: 'action-tone waiting',
       });
       return;
@@ -273,21 +352,26 @@ Page({
     const noteInfo = frequencyToNote(frame.frequency);
     const target = this.data.targetNote;
     const targetCentOffset = frequencyToTargetCentOffset(frame.frequency, target.frequency);
-    const needleRotation = getNeedleRotation(targetCentOffset);
+    const needlePosition = getNeedlePosition(targetCentOffset);
+    const needleColor = getNeedleColor(targetCentOffset);
     const tuningStatus = getTuningStatus(targetCentOffset);
-    const direction =
-      tuningStatus.key === 'in-tune'
-        ? `${target.label} 已校准`
-        : `${target.label} ${tuningStatus.label} ${formatCentOffset(targetCentOffset)}`;
     const noteLetter = target.label.replace(/\d/g, '');
+    const headlineMap = {
+      'in-tune': '音准正确，保持当前弦轴',
+      sharp: '音偏高，请放松弦轴',
+      flat: '音偏低，请拧紧弦轴',
+      far: '当前音不匹配，请检查弦轴',
+    };
 
     this.setData({
-      statusText: direction,
+      statusText: `${noteInfo.label} · ${frame.frequency.toFixed(1)} Hz · ${formatCentOffset(targetCentOffset)}`,
+      headlineText: headlineMap[tuningStatus.key] || '正在监听，请继续微调',
       noteLabel: noteLetter,
-      detectedNoteText: `当前音：${noteInfo.label}`,
+      detectedNoteText: `检测音：${noteInfo.label}`,
       frequencyText: `${frame.frequency.toFixed(1)} Hz`,
       centText: formatCentOffset(targetCentOffset),
-      needleRotation,
+      needlePosition,
+      needleColor,
       tuningStatusText: tuningStatus.label,
       tuningActionText: tuningStatus.actionText,
       actionToneClass: `action-tone ${tuningStatus.key}`,
@@ -297,7 +381,8 @@ Page({
   finishTuning() {
     this.setData({
       isRecording: false,
-      statusText: '调音已暂停',
+      statusText: `当前参考频率 ${this.data.referencePitch}Hz`,
+      headlineText: '监听已暂停',
     });
   },
 

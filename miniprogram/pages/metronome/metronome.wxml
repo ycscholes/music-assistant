@@ -1,0 +1,48 @@
+<view class="page metronome-page">
+  <view class="bpm-section">
+    <view class="bpm-row">
+      <view class="bpm-stepper" hover-class="bpm-stepper-active" bindtap="decreaseBpm">
+        <text class="bpm-step">−</text>
+      </view>
+      <view
+        class="bpm-display {{isTapPressed ? 'bpm-display-pressed' : ''}}"
+        bindtouchstart="handleTapTempoStart"
+        bindtouchend="handleTapTempoEnd"
+        hover-class="bpm-display-hover"
+        hover-stay-time="100"
+      >
+        <text class="bpm-value">{{bpm}}</text>
+        <text class="bpm-label">BPM</text>
+      </view>
+      <view class="bpm-stepper" hover-class="bpm-stepper-active" bindtap="increaseBpm">
+        <text class="bpm-step">+</text>
+      </view>
+    </view>
+    <text class="tap-hint">{{tapHint}}</text>
+  </view>
+
+  <view class="signature-row">
+    <view
+      wx:for="{{[{n:2,d:2},{n:3,d:4},{n:4,d:4},{n:6,d:8}]}}"
+      wx:key="n"
+      class="sig-pill {{beatsPerMeasure === item.n ? 'sig-pill-active' : ''}}"
+      data-beats="{{item.n}}"
+      bindtap="setTimeSignature"
+    >
+      <text>{{item.n}}/{{item.d}}</text>
+    </view>
+  </view>
+
+  <view class="beat-stage">
+    <view class="beat-circle {{isRunning ? 'running' : ''}} {{beatPulse ? 'pulse' : ''}}">
+      <text class="beat-number">{{isRunning ? currentBeat : '—'}}</text>
+    </view>
+    <view class="beat-dots">
+      <view wx:for="{{beatDots}}" wx:key="beat" class="beat-dot {{item.active ? 'active' : ''}}"></view>
+    </view>
+  </view>
+
+  <button class="primary-button" bindtap="toggleRunning">
+    {{isRunning ? '停止' : '开始'}}
+  </button>
+</view>

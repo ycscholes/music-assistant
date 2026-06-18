@@ -1,13 +1,19 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/score-list/score-list",
+    "pages/score-prepare/score-prepare",
+    "pages/score-practice/score-practice",
+    "pages/score-result/score-result",
     "pages/detect/detect",
     "pages/result/result",
-    "pages/history/history"
+    "pages/history/history",
+    "pages/settings/settings",
+    "pages/metronome/metronome"
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#163B5C",
+    "navigationBarBackgroundColor": "#171614",
     "navigationBarTitleText": "小提琴智能陪练",
     "navigationBarTextStyle": "white"
   },

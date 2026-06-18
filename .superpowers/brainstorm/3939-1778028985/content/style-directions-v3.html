@@ -1,0 +1,144 @@
+<h2>第三轮视觉方案</h2>
+<p class="subtitle">这轮继续扩展边界：更重情绪、训练机制、舞台表现和低龄启蒙。选择时重点看“你希望这个产品像什么”，不是只看颜色。</p>
+
+<div class="section">
+  <div class="label">Design specification extension</div>
+  <p>Purpose: 当前 MVP 已有检测、曲谱、结果、历史四个核心流，重设计需要让用户一眼理解“现在该练什么”和“练完有什么反馈”。Layout: 首页可以从功能入口页转为练习控制台，检测页使用大号可视反馈，历史页用进步轨迹承接留存。</p>
+</div>
+
+<div class="cards">
+  <div class="card" data-choice="h" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">H. Ink Tempo</div>
+        <div class="mockup-body" style="background:#f7f3ea;padding:18px;border-radius:14px;color:#171512;min-height:300px;position:relative;overflow:hidden;">
+          <div style="position:absolute;right:-28px;top:-20px;width:180px;height:180px;border-radius:50%;background:#d0e0d3;"></div>
+          <div style="position:absolute;right:32px;top:44px;width:112px;height:112px;border-radius:50%;background:#171512;"></div>
+          <div style="position:absolute;right:54px;top:68px;width:68px;height:68px;border-radius:50%;background:#f7f3ea;"></div>
+          <div style="position:relative;display:grid;grid-template-columns:1fr 84px;gap:16px;">
+            <div>
+              <div style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#8a3b2d;font-weight:800;">Breath first</div>
+              <div style="font-family:serif;font-size:34px;font-weight:900;line-height:1.06;margin-top:14px;">先听见弓，再校准音</div>
+            </div>
+            <div style="writing-mode:vertical-rl;font-family:serif;font-size:24px;font-weight:900;line-height:1.15;">小提琴陪练</div>
+          </div>
+          <div style="position:relative;margin-top:26px;background:#fffbf3;border:1px solid #d9cdbb;border-radius:8px;padding:14px;">
+            <div style="display:flex;align-items:flex-end;gap:8px;height:92px;">
+              <div style="width:18%;height:32%;background:#171512;"></div>
+              <div style="width:18%;height:58%;background:#8a3b2d;"></div>
+              <div style="width:18%;height:76%;background:#171512;"></div>
+              <div style="width:18%;height:44%;background:#8a3b2d;"></div>
+              <div style="width:18%;height:66%;background:#171512;"></div>
+            </div>
+            <div style="margin-top:10px;font-size:13px;color:#6d6459;">弓速稳定后再进入音准评分</div>
+          </div>
+          <div style="position:relative;margin-top:16px;background:#171512;color:#f7f3ea;border-radius:8px;padding:11px 16px;display:inline-block;font-weight:900;">开始长音</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Ink Tempo</h3>
+      <p>东方留白和墨色节奏，安静、克制、有高级感。适合强调“听、呼吸、稳定”这一类练习体验。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="i" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">I. Conservatory Drill</div>
+        <div class="mockup-body" style="background:#edf0df;padding:18px;border-radius:14px;color:#19231b;min-height:300px;position:relative;overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;right:0;height:34px;background:repeating-linear-gradient(90deg,#19231b 0 18px,#edf0df 18px 34px);opacity:.9;"></div>
+          <div style="margin-top:48px;display:flex;justify-content:space-between;gap:12px;">
+            <div>
+              <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#c9432b;font-weight:900;">Drill plan</div>
+              <div style="font-size:31px;font-weight:900;line-height:1.08;margin-top:12px;">15 分钟训练卡</div>
+            </div>
+            <div style="background:#c9432b;color:#fff8ee;border-radius:8px;padding:10px 12px;height:fit-content;font-weight:900;">Day 03</div>
+          </div>
+          <div style="margin-top:22px;display:grid;gap:8px;">
+            <div style="background:#fff8ee;border:2px solid #19231b;border-radius:8px;padding:12px;display:flex;justify-content:space-between;">
+              <span style="font-weight:900;">01 空弦热身</span><span>3 min</span>
+            </div>
+            <div style="background:#19231b;color:#fff8ee;border-radius:8px;padding:12px;display:flex;justify-content:space-between;">
+              <span style="font-weight:900;">02 D 大调短句</span><span>8 min</span>
+            </div>
+            <div style="background:#fff8ee;border:2px solid #19231b;border-radius:8px;padding:12px;display:flex;justify-content:space-between;">
+              <span style="font-weight:900;">03 复盘记录</span><span>4 min</span>
+            </div>
+          </div>
+          <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div style="background:#bfd2bd;border-radius:8px;padding:10px;font-weight:900;">音准 82</div>
+            <div style="background:#f0c46b;border-radius:8px;padding:10px;font-weight:900;">稳定 76</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Conservatory Drill</h3>
+      <p>音乐学院训练卡，清晰、硬朗、有计划感。适合把产品做成“每天一套练习任务”的陪练系统。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="j" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">J. Amber Recital</div>
+        <div class="mockup-body" style="background:#241611;padding:18px;border-radius:14px;color:#fff4df;min-height:300px;position:relative;overflow:hidden;">
+          <div style="position:absolute;inset:-40px;background:radial-gradient(circle at 58% 18%,rgba(245,181,80,.55),transparent 34%),radial-gradient(circle at 18% 76%,rgba(166,45,37,.45),transparent 36%);"></div>
+          <div style="position:relative;">
+            <div style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#f0c36c;font-weight:800;">Recital mode</div>
+            <div style="font-family:serif;font-size:35px;font-weight:900;line-height:1.02;margin-top:14px;max-width:220px;">每次练习都像一次小型演出</div>
+          </div>
+          <div style="position:relative;margin-top:28px;display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:center;">
+            <div style="height:148px;background:#fff4df;color:#241611;border-radius:8px;padding:12px;display:flex;flex-direction:column;justify-content:space-between;">
+              <div style="font-size:12px;color:#7b5a3c;">score</div>
+              <div style="font-size:44px;font-weight:900;">91</div>
+            </div>
+            <div style="display:grid;gap:8px;">
+              <div style="height:28px;background:#f0c36c;border-radius:4px;width:92%;"></div>
+              <div style="height:28px;background:#fff4df;border-radius:4px;width:66%;"></div>
+              <div style="height:28px;background:#a62d25;border-radius:4px;width:78%;"></div>
+              <div style="height:28px;background:#fff4df;border-radius:4px;width:48%;"></div>
+            </div>
+          </div>
+          <div style="position:relative;margin-top:18px;border:1px solid rgba(255,244,223,.55);border-radius:8px;padding:10px 14px;display:inline-block;font-weight:900;">录制一次练习</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Amber Recital</h3>
+      <p>舞台琥珀灯光，情绪最强，适合结果页和成绩反馈很出彩。缺点是检测页需要控制对比，避免压迫。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="k" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">K. First Bow</div>
+        <div class="mockup-body" style="background:#f3f7f0;padding:18px;border-radius:14px;color:#253128;min-height:300px;position:relative;overflow:hidden;">
+          <div style="position:absolute;left:-18px;top:34px;width:86px;height:86px;background:#f1b84b;border-radius:8px;transform:rotate(12deg);"></div>
+          <div style="position:absolute;right:20px;top:22px;width:78px;height:78px;background:#e75d43;border-radius:50%;"></div>
+          <div style="position:absolute;right:54px;bottom:42px;width:112px;height:26px;background:#4a8879;transform:rotate(-18deg);border-radius:999px;"></div>
+          <div style="position:relative;background:#fffdf7;border:2px solid #253128;border-radius:8px;padding:16px;box-shadow:8px 8px 0 #253128;">
+            <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#e75d43;font-weight:900;">Beginner friendly</div>
+            <div style="font-size:31px;font-weight:900;line-height:1.08;margin-top:12px;">第一次拉准，也要看得懂</div>
+            <div style="margin-top:18px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+              <div style="background:#253128;color:#fffdf7;border-radius:6px;padding:10px;text-align:center;font-weight:900;">G</div>
+              <div style="background:#f1b84b;border-radius:6px;padding:10px;text-align:center;font-weight:900;">D</div>
+              <div style="background:#4a8879;color:#fffdf7;border-radius:6px;padding:10px;text-align:center;font-weight:900;">A</div>
+              <div style="background:#e75d43;color:#fffdf7;border-radius:6px;padding:10px;text-align:center;font-weight:900;">E</div>
+            </div>
+          </div>
+          <div style="position:relative;margin-top:20px;display:flex;gap:10px;">
+            <div style="background:#253128;color:#fffdf7;border-radius:8px;padding:11px 14px;font-weight:900;">跟练</div>
+            <div style="background:#fffdf7;border:2px solid #253128;border-radius:8px;padding:9px 12px;font-weight:900;">看记录</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>First Bow</h3>
+      <p>初学者友好，色块清晰但不低幼。适合家长和儿童用户，交互提示可以更直接。</p>
+    </div>
+  </div>
+</div>

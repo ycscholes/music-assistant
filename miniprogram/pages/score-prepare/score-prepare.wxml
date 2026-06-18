@@ -1,0 +1,51 @@
+<view class="page prepare-page">
+  <block wx:if="{{empty}}">
+    <view class="panel empty-state">
+      <text class="title">未找到曲目</text>
+      <text class="subtitle">请返回列表重新选择练习曲。</text>
+    </view>
+  </block>
+
+  <block wx:else>
+    <view class="hero">
+      <text class="eyebrow">固定速度评测</text>
+      <text class="title">{{piece.title}}</text>
+      <text class="subtitle">{{piece.bpm}} BPM · {{piece.keySignature}} · {{piece.timeSignature}} · {{piece.estimatedDurationSec}}s</text>
+    </view>
+
+    <view class="panel stat-grid">
+      <view class="stat-item">
+        <text class="stat-value">{{piece.difficulty}}</text>
+        <text class="stat-label">难度</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{piece.bpm}}</text>
+        <text class="stat-label">BPM</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{piece.timeSignature}}</text>
+        <text class="stat-label">拍号</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{piece.noteCount}}</text>
+        <text class="stat-label">音符数</text>
+      </view>
+    </view>
+
+    <view class="panel score-panel">
+      <text class="section-title">本地五线谱</text>
+      <staff-score piece="{{piece}}" active-note-index="{{0}}" />
+    </view>
+
+    <button class="primary-button" bindtap="startPractice">开始评测</button>
+
+    <view class="prep-note">
+      <text>预备 {{piece.countInBeats}} 拍 · 评分包含音准、节奏、完成率 · 手机靠近琴身</text>
+    </view>
+
+    <view class="panel tips">
+      <text class="section-title">练习重点</text>
+      <text wx:for="{{piece.focusTips}}" wx:key="*this" class="tip">- {{item}}</text>
+    </view>
+  </block>
+</view>

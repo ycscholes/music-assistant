@@ -1,0 +1,44 @@
+<view class="page score-result-page">
+  <block wx:if="{{empty}}">
+    <view class="panel empty-state">
+      <text class="title">暂无曲谱评测结果</text>
+      <text class="subtitle">请先完成一次曲谱评测。</text>
+      <button class="primary-button" bindtap="startScorePractice">选择练习曲</button>
+    </view>
+  </block>
+
+  <block wx:else>
+    <view class="score-panel">
+      <text class="score">{{session.summaryScores.totalScore}}</text>
+      <text class="score-label">{{session.rangeTitle}}</text>
+    </view>
+
+    <view class="panel score-grid">
+      <view wx:for="{{scoreItems}}" wx:key="label" class="score-item">
+        <text class="score-value">{{item.value}}</text>
+        <text class="item-label">{{item.label}}</text>
+      </view>
+    </view>
+
+    <view class="panel">
+      <text class="section-title">练习建议</text>
+      <text class="body-copy">{{session.advice}}</text>
+    </view>
+
+    <view class="panel">
+      <text class="section-title">错误定位</text>
+      <text wx:if="{{issueItems.length === 0}}" class="body-copy">本次没有明显集中问题。</text>
+      <view wx:else class="issue-list">
+        <text wx:for="{{issueItems}}" wx:key="id" class="issue-item">{{item.label}}</text>
+      </view>
+    </view>
+
+    <view class="actions">
+      <button class="primary-button" loading="{{saving}}" disabled="{{saved || saving}}" bindtap="saveResult">
+        {{saveButtonText}}
+      </button>
+      <button class="secondary-button" bindtap="practiceAgain">再练一次</button>
+      <button class="secondary-button" bindtap="openHistory">查看历史</button>
+    </view>
+  </block>
+</view>

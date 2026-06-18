@@ -31,6 +31,59 @@ function mergeFloat32Chunks(chunks, maxSamples) {
   return output;
 }
 
+// P5: Ring buffer for efficient sliding-window audio access.
+// Replaces the pattern of pushing chunks into an array and merging each time.
+function createRingBuffer(capacity) {
+  const buffer = new Float32Array(capacity);
+  let writePos = 0;
+  let count = 0;
+
+  function append(chunk) {
+    if (!chunk || !chunk.length) {
+      return;
+    }
+    for (let i = 0; i < chunk.length; i += 1) {
+      buffer[writePos] = chunk[i];
+      writePos = (writePos + 1) % capacity;
+    }
+    count = Math.min(count + chunk.length, capacity);
+  }
+
+  function getCapacity() {
+    return capacity;
+  }
+
+  function getRecent(numSamples) {
+    const len = Math.min(numSamples, count);
+    const output = new Float32Array(len);
+    if (len === 0) {
+      return output;
+    }
+    // The most recent sample is at (writePos - 1 + capacity) % capacity.
+    // We want the last `len` samples in chronological order.
+    const start = (writePos - len + capacity) % capacity;
+    if (start + len <= capacity) {
+      output.set(buffer.subarray(start, start + len));
+    } else {
+      const firstPart = capacity - start;
+      output.set(buffer.subarray(start, capacity), 0);
+      output.set(buffer.subarray(0, len - firstPart), firstPart);
+    }
+    return output;
+  }
+
+  function length() {
+    return count;
+  }
+
+  function clear() {
+    writePos = 0;
+    count = 0;
+  }
+
+  return { append, getRecent, length, clear };
+}
+
 function copyArrayBuffer(arrayBuffer) {
   if (!arrayBuffer || arrayBuffer.byteLength === 0) {
     return new ArrayBuffer(0);
@@ -97,6 +150,7 @@ function createWavFileBuffer(pcmBuffer, sampleRate, channels, bitsPerSample) {
 module.exports = {
   concatArrayBuffers,
   copyArrayBuffer,
+  createRingBuffer,
   createWavFileBuffer,
   int16PcmToFloat32,
   mergeFloat32Chunks,

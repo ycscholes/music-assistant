@@ -1,0 +1,83 @@
+{
+  "projectPath": "/Users/paul/workspace/music-assistant",
+  "outputDir": "screenshots",
+  "pages": [
+    {
+      "name": "index",
+      "path": "pages/index/index",
+      "mock": null
+    },
+    {
+      "name": "detect",
+      "path": "pages/detect/detect?targetNote=E4",
+      "mock": null
+    },
+    {
+      "name": "result",
+      "path": "pages/result/result",
+      "mock": {
+        "storage": {
+          "lastSession": {
+            "targetNote": "A4",
+            "detectedNote": "A4",
+            "centOffset": 3,
+            "score": 92,
+            "stability": 88,
+            "durationMs": 4200,
+            "frames": 12,
+            "timestamp": 1716019200000
+          }
+        }
+      }
+    },
+    {
+      "name": "history",
+      "path": "pages/history/history",
+      "mock": null
+    },
+    {
+      "name": "metronome",
+      "path": "pages/metronome/metronome",
+      "mock": null
+    },
+    {
+      "name": "settings",
+      "path": "pages/settings/settings",
+      "mock": null
+    },
+    {
+      "name": "score-list",
+      "path": "pages/score-list/score-list",
+      "mock": null
+    },
+    {
+      "name": "score-prepare",
+      "path": "pages/score-prepare/score-prepare?pieceId=twinkle_twinkle_mvp",
+      "mock": null
+    },
+    {
+      "name": "score-practice",
+      "path": "pages/score-practice/score-practice?pieceId=twinkle_twinkle_mvp",
+      "mock": null
+    },
+    {
+      "name": "score-result",
+      "path": "pages/score-result/score-result",
+      "mock": {
+        "storage": {
+          "lastScorePractice": {
+            "pieceId": "twinkle_twinkle_mvp",
+            "pieceTitle": "小星星",
+            "totalNotes": 24,
+            "matchedNotes": 20,
+            "score": 85,
+            "timingScore": 82,
+            "pitchScore": 88,
+            "feedback": ["音准良好", "注意节奏稳定性"],
+            "timestamp": 1716019200000
+          }
+        }
+      }
+    }
+  ]
+}

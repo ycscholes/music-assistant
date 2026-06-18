@@ -1,0 +1,23 @@
+<view class="page score-list-page">
+  <view class="header">
+    <text class="eyebrow">固定 BPM 跟练</text>
+    <text class="title">选择练习曲</text>
+    <text class="subtitle">三首内置短句 · 本地五线谱 · 音准与节奏评测</text>
+  </view>
+
+  <view class="piece-list">
+    <view wx:for="{{pieces}}" wx:key="id" class="panel piece-card" hover-class="piece-card-active" data-id="{{item.id}}" bindtap="openPiece">
+      <view class="piece-head">
+        <view>
+          <text class="piece-title">{{item.title}}</text>
+          <text class="piece-meta">{{item.difficulty}} · {{item.keySignature}} · {{item.timeSignature}} · {{item.bpm}} BPM</text>
+        </view>
+        <view class="piece-action">
+          <text class="piece-duration">{{item.estimatedDurationSec}}s</text>
+          <text class="piece-link">准备</text>
+        </view>
+      </view>
+      <text class="piece-focus">{{item.focusText}}</text>
+    </view>
+  </view>
+</view>

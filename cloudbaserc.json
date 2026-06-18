@@ -1,0 +1,10 @@
+{
+  "envId": "brain-game-6gtx0hei4de22731",
+  "functionRoot": "cloudfunctions/",
+  "functions": [
+    {
+      "name": "getOpenId",
+      "timeout": 5
+    }
+  ]
+}

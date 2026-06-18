@@ -5,13 +5,30 @@
   "main": "generate-prd.js",
   "scripts": {
     "test": "node --test",
-    "check:js": "node --check miniprogram/utils/pitch-yin.js && node --check miniprogram/utils/note.js && node --check miniprogram/utils/score.js && node --check miniprogram/utils/audio-frame.js && node --check miniprogram/utils/tuning-status.js && node --check miniprogram/pages/detect/detect.js && node --check miniprogram/pages/result/result.js && node --check miniprogram/pages/history/history.js && node --check miniprogram/pages/index/index.js"
+    "screenshot": "node scripts/screenshot-test.js",
+    "screenshot:pages": "node scripts/screenshot-test.js --pages",
+    "generate:score-assets": "npm run generate:score-assets:local",
+    "generate:score-assets:local": "node scripts/generate-score-assets.js --mode=local",
+    "upload:score-assets": "node scripts/upload-score-assets.js",
+    "generate:score-assets:cloud": "node scripts/generate-score-assets.js --mode=cloud",
+    "check:js": "node --check scripts/generate-score-assets.js && node --check scripts/upload-score-assets.js && node --check miniprogram/utils/pitch-yin.js && node --check miniprogram/utils/note.js && node --check miniprogram/utils/score.js && node --check miniprogram/utils/audio-frame.js && node --check miniprogram/utils/tuning-status.js && node --check miniprogram/utils/score-practice/piece-library.js && node --check miniprogram/utils/score-practice/staff-layout.js && node --check miniprogram/utils/score-practice/score-assets.js && node --check miniprogram/utils/score-practice/generated-score-assets.js && node --check miniprogram/utils/score-practice/metronome-timeline.js && node --check miniprogram/utils/score-practice/score-evaluator.js && node --check miniprogram/utils/score-practice/score-feedback.js && node --check miniprogram/components/staff-score/index.js && node --check miniprogram/pages/detect/detect.js && node --check miniprogram/pages/result/result.js && node --check miniprogram/pages/history/history.js && node --check miniprogram/pages/index/index.js && node --check miniprogram/pages/score-list/score-list.js && node --check miniprogram/pages/score-prepare/score-prepare.js && node --check miniprogram/pages/score-practice/score-practice.js && node --check miniprogram/pages/score-result/score-result.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "engines": {
+    "node": ">=22 <23"
+  },
   "dependencies": {
+    "@cloudbase/node-sdk": "^3.18.1",
     "docx": "^9.6.1"
+  },
+  "devDependencies": {
+    "@vexflow-fonts/bravura": "^1.0.2",
+    "canvas": "^3.2.3",
+    "jsdom": "^29.1.1",
+    "miniprogram-automator": "^0.12.1",
+    "vexflow": "^5.0.0"
   }
 }

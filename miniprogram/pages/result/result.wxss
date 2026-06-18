@@ -1,41 +1,47 @@
 .result-page {
   display: flex;
   flex-direction: column;
-  gap: 24rpx;
+  gap: 30rpx;
 }
 
 .score-panel {
-  padding: 48rpx 32rpx;
-  border-radius: 8rpx;
-  background: var(--primary);
-  color: #FFFFFF;
-  text-align: center;
+  padding: 44rpx 0 36rpx;
+  border-top: 1rpx solid var(--primary);
+  border-bottom: 1rpx solid var(--primary);
+  color: var(--primary);
 }
 
 .score {
   display: block;
+  font-family: "Songti SC", "STSong", Georgia, serif;
   font-size: 104rpx;
   font-weight: 800;
   line-height: 1;
+  text-align: center;
 }
 
 .score-label {
   display: block;
   margin-top: 12rpx;
-  font-size: 26rpx;
+  color: var(--muted);
+  font-size: 24rpx;
+  text-align: center;
 }
 
 .result-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20rpx;
+  gap: 0;
+  padding: 0;
+  background: transparent;
+  border-left: none;
+  border-right: none;
 }
 
 .result-item {
-  border: 2rpx solid var(--line);
-  border-radius: 8rpx;
-  padding: 20rpx;
-  text-align: center;
+  border: none;
+  border-bottom: 1rpx solid var(--line);
+  padding: 22rpx 8rpx;
 }
 
 .result-item.full {
@@ -44,8 +50,9 @@
 
 .result-value {
   display: block;
+  font-family: Georgia, "Songti SC", serif;
   color: var(--accent);
-  font-size: 36rpx;
+  font-size: 38rpx;
   font-weight: 800;
 }
 
@@ -60,12 +67,14 @@
   display: flex;
   flex-direction: column;
   gap: 12rpx;
+  border-left: 6rpx solid var(--accent);
 }
 
 .playback {
   display: flex;
   flex-direction: column;
   gap: 20rpx;
+  background: transparent;
 }
 
 .playback-copy {
@@ -78,7 +87,8 @@
 .playback-title,
 .empty-title {
   color: var(--primary);
-  font-size: 32rpx;
+  font-family: "Songti SC", "STSong", Georgia, serif;
+  font-size: 34rpx;
   font-weight: 800;
 }
 
@@ -98,5 +108,24 @@
 .empty {
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
+  align-items: center;
+  gap: 14rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+}
+
+.actions .primary-button,
+.actions .secondary-button,
+.empty .primary-button {
+  width: 100%;
+  max-width: 520rpx;
+}
+
+.actions .secondary-button {
+  border: 1.5rpx solid rgba(23, 22, 20, 0.24);
+}
+
+@media (max-width: 360px) {
+  .score {
+    font-size: 88rpx;
+  }
 }

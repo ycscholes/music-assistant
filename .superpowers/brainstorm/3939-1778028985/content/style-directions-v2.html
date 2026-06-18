@@ -1,0 +1,131 @@
+<h2>第二轮视觉方案</h2>
+<p class="subtitle">这轮更贴近小程序落地：每个方案都包含首页气质、练习入口和检测反馈的视觉隐喻。可点击选择，也可以告诉我想混搭哪些部分。</p>
+
+<div class="section">
+  <div class="label">Design specification baseline</div>
+  <p>Purpose: 小提琴学习者需要一个打开即能进入练习状态的陪练工具，既要降低紧张感，也要让音准反馈足够可信。Typography: 标题倾向 Songti SC / STFangsong 的乐谱气质，正文用 PingFang SC 作为小程序可用兜底。Layout: 首页采用非对称首屏和大面积状态仪表，检测页把音准偏差做成可读的主视觉。</p>
+</div>
+
+<div class="cards">
+  <div class="card" data-choice="d" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">D. Rosin Studio</div>
+        <div class="mockup-body" style="background:#f4eadb;padding:18px;border-radius:14px;color:#221f1c;min-height:300px;position:relative;overflow:hidden;">
+          <div style="position:absolute;right:-34px;top:20px;width:128px;height:128px;border:18px solid #c73e32;border-radius:50%;opacity:.9;"></div>
+          <div style="position:absolute;left:-24px;bottom:-20px;width:150px;height:92px;background:#2f6f62;transform:rotate(-9deg);opacity:.95;"></div>
+          <div style="position:relative;">
+            <div style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#c73e32;font-weight:700;">Daily intonation</div>
+            <div style="font-family:serif;font-size:33px;font-weight:800;line-height:1.05;margin-top:14px;max-width:210px;">今天把 A 弦磨到稳定</div>
+            <div style="margin-top:22px;width:190px;height:190px;border-radius:50%;background:#fffaf1;border:1px solid #d4bfa2;display:flex;align-items:center;justify-content:center;box-shadow:0 18px 0 rgba(34,31,28,.08);">
+              <div style="text-align:center;">
+                <div style="font-size:46px;font-weight:900;">A4</div>
+                <div style="margin-top:4px;color:#7a6651;font-size:13px;">+6 cent</div>
+              </div>
+            </div>
+            <div style="margin-top:18px;background:#221f1c;color:#f4eadb;border-radius:8px;padding:11px 16px;display:inline-block;font-weight:800;">开始调音</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Rosin Studio</h3>
+      <p>松香、木纹、练习室。适合把产品做得亲近、长期可用，重点突出每日练习和稳定进步。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="e" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">E. Score Editorial</div>
+        <div class="mockup-body" style="background:#fbfaf5;padding:18px;border-radius:14px;color:#111;min-height:300px;position:relative;overflow:hidden;">
+          <div style="height:1px;background:#111;margin-top:30px;box-shadow:0 18px 0 #111,0 36px 0 #111,0 54px 0 #111,0 72px 0 #111;opacity:.22;"></div>
+          <div style="display:grid;grid-template-columns:1.1fr .9fr;gap:14px;margin-top:72px;position:relative;">
+            <div>
+              <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#2f5f9f;font-weight:800;">Sheet practice</div>
+              <div style="font-family:serif;font-size:31px;font-weight:900;line-height:1.04;margin-top:10px;">从曲谱进入一次完整评测</div>
+            </div>
+            <div style="background:#2f5f9f;color:#fbfaf5;border-radius:8px;padding:14px;transform:translateY(-10px);">
+              <div style="font-size:12px;opacity:.75;">current piece</div>
+              <div style="font-size:23px;font-weight:900;margin-top:8px;">BPM 72</div>
+              <div style="margin-top:18px;height:6px;background:rgba(255,255,255,.25);border-radius:999px;"><div style="width:62%;height:100%;background:#f2c94c;border-radius:999px;"></div></div>
+            </div>
+          </div>
+          <div style="margin-top:18px;display:flex;gap:8px;">
+            <div style="background:#111;color:#fbfaf5;border-radius:8px;padding:9px 12px;font-weight:800;">选曲</div>
+            <div style="border:1px solid #111;border-radius:8px;padding:9px 12px;font-weight:800;">历史</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Score Editorial</h3>
+      <p>像一本练习谱册，黑白版式加少量钴蓝和黄。适合强化“曲谱评测”这个更高阶的功能。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="f" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">F. Tuner Console</div>
+        <div class="mockup-body" style="background:#101412;padding:18px;border-radius:14px;color:#e8f4ee;min-height:300px;position:relative;overflow:hidden;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#78d86f;font-weight:800;">Live signal</div>
+            <div style="width:54px;height:24px;border-radius:999px;background:#78d86f;color:#101412;text-align:center;line-height:24px;font-size:12px;font-weight:900;">ON</div>
+          </div>
+          <div style="margin:22px auto 0;width:210px;height:132px;border:2px solid #78d86f;border-bottom:none;border-radius:210px 210px 0 0;position:relative;">
+            <div style="position:absolute;left:100px;bottom:0;width:4px;height:104px;background:#e23d3d;transform:rotate(12deg);transform-origin:bottom center;"></div>
+            <div style="position:absolute;left:58px;bottom:18px;font-size:12px;color:#7d9287;">flat</div>
+            <div style="position:absolute;right:54px;bottom:18px;font-size:12px;color:#7d9287;">sharp</div>
+          </div>
+          <div style="text-align:center;margin-top:12px;">
+            <div style="font-size:52px;font-weight:900;line-height:1;">D4</div>
+            <div style="font-size:13px;color:#93aaa0;margin-top:6px;">-11 cent · adjust finger pressure</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:20px;">
+            <div style="background:#1d2420;border:1px solid #33423a;border-radius:7px;padding:9px;text-align:center;font-weight:900;">G</div>
+            <div style="background:#78d86f;color:#101412;border-radius:7px;padding:9px;text-align:center;font-weight:900;">D</div>
+            <div style="background:#1d2420;border:1px solid #33423a;border-radius:7px;padding:9px;text-align:center;font-weight:900;">A</div>
+            <div style="background:#1d2420;border:1px solid #33423a;border-radius:7px;padding:9px;text-align:center;font-weight:900;">E</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Tuner Console</h3>
+      <p>偏专业设备，低照度、高对比、仪表盘强。适合把音高检测做成产品核心，但首页亲和力较低。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="g" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">G. Practice Ledger</div>
+        <div class="mockup-body" style="background:#e9f1ec;padding:18px;border-radius:14px;color:#18322b;min-height:300px;position:relative;overflow:hidden;">
+          <div style="display:grid;grid-template-columns:.8fr 1.2fr;gap:12px;">
+            <div style="writing-mode:vertical-rl;font-family:serif;font-size:30px;font-weight:900;line-height:1.05;color:#18322b;">练习记录</div>
+            <div>
+              <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#d04432;font-weight:800;">Progress first</div>
+              <div style="font-size:25px;font-weight:900;line-height:1.12;margin-top:12px;">每次只盯一个可改善指标</div>
+            </div>
+          </div>
+          <div style="margin-top:22px;display:grid;gap:10px;">
+            <div style="background:#fffdf7;border-left:5px solid #d04432;border-radius:7px;padding:12px;">
+              <div style="font-size:12px;color:#64786f;">today</div>
+              <div style="font-size:22px;font-weight:900;margin-top:4px;">稳定性 86%</div>
+            </div>
+            <div style="background:#fffdf7;border-left:5px solid #2e7c6b;border-radius:7px;padding:12px;">
+              <div style="font-size:12px;color:#64786f;">last session</div>
+              <div style="font-size:22px;font-weight:900;margin-top:4px;">音准 +9 分</div>
+            </div>
+          </div>
+          <div style="margin-top:18px;background:#18322b;color:#fffdf7;border-radius:8px;padding:11px 16px;display:inline-block;font-weight:900;">继续练习</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Practice Ledger</h3>
+      <p>练习手账感，强调记录、复盘、成长。适合未来扩展历史页、练习计划和阶段反馈。</p>
+    </div>
+  </div>
+</div>

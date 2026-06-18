@@ -51,8 +51,8 @@ function formatCentOffset(centOffset) {
     return '--';
   }
   const rounded = Math.round(centOffset);
-  if (rounded === 0) {
-    return '0 cents';
+  if (Math.abs(rounded) <= 2) {
+    return 'in tune';
   }
   return `${rounded > 0 ? '+' : ''}${rounded} cents`;
 }
