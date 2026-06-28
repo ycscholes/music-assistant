@@ -86,28 +86,47 @@
           <text class="action-range-chip-value">{{rangeLabel}}</text>
         </view>
       </view>
-      <view class="action-hint">
-        <text>{{statusText}}</text>
+      <view class="action-guidance">
+        <text class="action-guidance-label">当前策略</text>
+        <text class="action-guidance-copy">{{statusText}}</text>
       </view>
-      <view class="action-tags">
-        <text class="action-tag">{{piece.bpm}} BPM</text>
-        <text class="action-tag">{{countInText}}</text>
-        <text class="action-tag {{hasPartialRange ? 'accent-tag' : ''}}">
-          {{hasPartialRange ? scoreRange.noteCount + ' 个音' : '整首练习'}}
-        </text>
+      <view class="control-block">
+        <view class="control-block-head">
+          <text class="control-block-title">评测模式</text>
+          <text class="control-block-meta">切换后立即生效</text>
+        </view>
+        <view class="mode-switch">
+          <button class="mode-option {{isFixedMode ? 'active' : ''}}" data-mode="fixed" bindtap="setPracticeModeByTap">
+            <text class="mode-option-title">固定节拍</text>
+            <text class="mode-option-desc">速度锁定</text>
+          </button>
+          <button class="mode-option {{isFollowPracticeMode ? 'active follow' : ''}}" data-mode="follow" bindtap="setPracticeModeByTap">
+            <text class="mode-option-title">跟随模式</text>
+            <text class="mode-option-desc">按演奏推进</text>
+          </button>
+          <button class="mode-option {{isPitchGatePracticeMode ? 'active gate' : ''}}" data-mode="pitch-gate" bindtap="setPracticeModeByTap">
+            <text class="mode-option-title">音准闯关</text>
+            <text class="mode-option-desc">拉准再前进</text>
+          </button>
+        </view>
       </view>
-      <view class="mode-switch">
-        <button class="mode-option {{isFixedMode ? 'active' : ''}}" data-mode="fixed" bindtap="setPracticeModeByTap">固定节拍</button>
-        <button class="mode-option {{isFollowPracticeMode ? 'active follow' : ''}}" data-mode="follow" bindtap="setPracticeModeByTap">跟随模式</button>
-        <button class="mode-option {{isPitchGatePracticeMode ? 'active gate' : ''}}" data-mode="pitch-gate" bindtap="setPracticeModeByTap">音准闯关</button>
+      <view class="control-block">
+        <view class="control-block-head">
+          <text class="control-block-title">练习范围</text>
+          <text class="control-block-meta">{{hasPartialRange ? scoreRange.noteCount + ' 个音' : '整首'}}</text>
+        </view>
+        <view class="range-tools">
+          <button class="secondary-button range-button {{rangeSelectionMode ? 'selecting' : ''}}" hover-class="secondary-button-hover" bindtap="toggleRangeSelection">{{rangeButtonText}}</button>
+          <button wx:if="{{hasPartialRange || rangeSelectionMode}}" class="secondary-button range-reset" hover-class="secondary-button-hover" bindtap="resetScoreRange">恢复整首</button>
+        </view>
+        <text class="control-footnote">{{rangeInstruction}}</text>
       </view>
-      <view class="range-tools">
-        <button class="secondary-button range-button {{rangeSelectionMode ? 'selecting' : ''}}" hover-class="secondary-button-hover" bindtap="toggleRangeSelection">{{rangeButtonText}}</button>
-        <button wx:if="{{hasPartialRange || rangeSelectionMode}}" class="secondary-button range-reset" hover-class="secondary-button-hover" bindtap="resetScoreRange">恢复整首</button>
-      </view>
-      <view class="action-footer">
-        <text class="action-footer-copy">{{rangeInstruction}}</text>
-        <button class="primary-button start-button {{rangeSelectionMode ? 'waiting-range' : ''}}" hover-class="primary-button-hover" bindtap="startPractice">{{startButtonText}}</button>
+      <view class="start-panel {{rangeSelectionMode ? 'is-pending' : ''}}">
+        <view class="start-copy">
+          <text class="start-label">开始评测</text>
+          <text class="start-caption">{{startHelperText}}</text>
+        </view>
+        <button class="primary-button start-button {{rangeSelectionMode ? 'waiting-range' : ''}}" hover-class="primary-button-hover" disabled="{{rangeSelectionMode}}" bindtap="startPractice">{{startButtonText}}</button>
       </view>
     </view>
     <button wx:else class="secondary-button danger-outline" hover-class="secondary-button-hover" bindtap="stopPractice">提前结束</button>

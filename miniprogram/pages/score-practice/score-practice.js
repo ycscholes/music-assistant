@@ -79,13 +79,43 @@ function buildScoreRange(piece, startIndex, endIndex) {
   };
 }
 
+function getRangeSelectionCopy(range, options = {}) {
+  const awaitingEnd = Boolean(options.awaitingEnd);
+  const selectionMode = Boolean(options.selectionMode);
+
+  if (selectionMode) {
+    return {
+      rangeInstruction: awaitingEnd ? '请选择截止音符' : '请选择起点音符',
+      rangeButtonText: '重新选段',
+      startButtonText: awaitingEnd ? '等待终点' : '等待起点',
+      startHelperText: awaitingEnd ? '起点已选，请在谱面上点选终点。' : '请先在谱面上点选起点。',
+    };
+  }
+
+  if (range && !range.isFullPiece) {
+    return {
+      rangeInstruction: `已选 ${range.noteCount} 个音，可直接开始`,
+      rangeButtonText: '重新选段',
+      startButtonText: '开始片段评测',
+      startHelperText: `将从 ${range.startLabel} 至 ${range.endLabel} 直接进入评测。`,
+    };
+  }
+
+  return {
+    rangeInstruction: '可切换为片段练习',
+    rangeButtonText: '选择片段',
+    startButtonText: '开始整首评测',
+    startHelperText: '将从第一个音开始完整评测。',
+  };
+}
+
 Page({
   data: {
     empty: false,
     piece: null,
     isRunning: false,
     phaseText: '准备开始',
-    statusText: '先稳定持琴，再点击开始。',
+    statusText: '按既定拍速推进，适合完整节奏评测。',
     countInText: '预备拍 4 拍',
     beatText: '--',
     beatPulse: false,
@@ -113,9 +143,10 @@ Page({
     hasPartialRange: false,
     showRangeMarkers: false,
     rangeSelectionMode: false,
-    rangeInstruction: '可选择片段练习',
-    rangeButtonText: '片段练习',
-    startButtonText: '开始整首练习',
+    rangeInstruction: '可切换为片段练习',
+    rangeButtonText: '选择片段',
+    startButtonText: '开始整首评测',
+    startHelperText: '将从第一个音开始完整评测。',
     focusTipText: '',
     followMode: false,
     practiceMode: 'fixed',
@@ -138,6 +169,7 @@ Page({
       clampNoteIndex(piece, options.startNoteIndex, 0),
       clampNoteIndex(piece, options.endNoteIndex, piece.notes.length - 1)
     );
+    const initialRangeCopy = getRangeSelectionCopy(initialRange);
     const endBeat = piece.notes.reduce(
       (max, note) => Math.max(max, Number(note.startBeat || 0) + Number(note.durationBeat || 0)),
       0
@@ -195,9 +227,10 @@ Page({
       rangeLabel: initialRange.label,
       hasPartialRange: !initialRange.isFullPiece,
       showRangeMarkers: !initialRange.isFullPiece,
-      rangeInstruction: initialRange.isFullPiece ? '可选择片段练习' : `已选 ${initialRange.noteCount} 个音`,
-      rangeButtonText: initialRange.isFullPiece ? '片段练习' : '重选片段',
-      startButtonText: initialRange.isFullPiece ? '开始整首练习' : '开始这一段',
+      rangeInstruction: initialRangeCopy.rangeInstruction,
+      rangeButtonText: initialRangeCopy.rangeButtonText,
+      startButtonText: initialRangeCopy.startButtonText,
+      startHelperText: initialRangeCopy.startHelperText,
       focusTipText: (piece.focusTips || []).join(' · '),
       notePreview: piece.notes.slice(0, 8).map((note, index) => ({
         label: note.label,
@@ -253,12 +286,14 @@ Page({
     }
 
     this.pendingRangeStartIndex = null;
+    const selectionCopy = getRangeSelectionCopy(this.data.scoreRange, { selectionMode: true });
     this.setData({
       rangeSelectionMode: true,
       showRangeMarkers: true,
-      rangeInstruction: '请选择起点音符',
-      rangeButtonText: '重新选段',
-      startButtonText: '先选起点',
+      rangeInstruction: selectionCopy.rangeInstruction,
+      rangeButtonText: selectionCopy.rangeButtonText,
+      startButtonText: selectionCopy.startButtonText,
+      startHelperText: selectionCopy.startHelperText,
     });
   },
 
@@ -268,6 +303,7 @@ Page({
     }
     const range = buildScoreRange(this.piece, 0, this.piece.notes.length - 1);
     const scoreAssetState = getScoreAssetCursor(this.piece.id, range.startNoteIndex);
+    const rangeCopy = getRangeSelectionCopy(range);
     this.pendingRangeStartIndex = null;
     this.setData({
       scoreRange: range,
@@ -277,9 +313,10 @@ Page({
       hasPartialRange: false,
       showRangeMarkers: false,
       rangeSelectionMode: false,
-      rangeInstruction: '可选择片段练习',
-      rangeButtonText: '片段练习',
-      startButtonText: '开始整首练习',
+      rangeInstruction: rangeCopy.rangeInstruction,
+      rangeButtonText: rangeCopy.rangeButtonText,
+      startButtonText: rangeCopy.startButtonText,
+      startHelperText: rangeCopy.startHelperText,
       progressText: `0 / ${range.noteCount}`,
       currentTargetText: this.piece.notes[range.startNoteIndex].label,
       activeNoteIndex: range.startNoteIndex,
@@ -316,6 +353,7 @@ Page({
     if (this.pendingRangeStartIndex === null || this.pendingRangeStartIndex === undefined) {
       this.pendingRangeStartIndex = safeIndex;
       const range = buildScoreRange(this.piece, safeIndex, safeIndex);
+      const selectionCopy = getRangeSelectionCopy(range, { selectionMode: true, awaitingEnd: true });
       this.setData({
         scoreRange: range,
         rangeStartNoteIndex: range.startNoteIndex,
@@ -323,14 +361,16 @@ Page({
         rangeLabel: range.label,
         hasPartialRange: true,
         showRangeMarkers: true,
-        rangeInstruction: '请选择截止音符',
-        startButtonText: '再选终点',
+        rangeInstruction: selectionCopy.rangeInstruction,
+        startButtonText: selectionCopy.startButtonText,
+        startHelperText: selectionCopy.startHelperText,
       });
       return;
     }
 
     const range = buildScoreRange(this.piece, this.pendingRangeStartIndex, safeIndex);
     const scoreAssetState = getScoreAssetCursor(this.piece.id, range.startNoteIndex);
+    const rangeCopy = getRangeSelectionCopy(range);
     this.pendingRangeStartIndex = null;
     this.setData({
       scoreRange: range,
@@ -340,9 +380,10 @@ Page({
       hasPartialRange: !range.isFullPiece,
       showRangeMarkers: !range.isFullPiece,
       rangeSelectionMode: false,
-      rangeInstruction: range.isFullPiece ? '可选择片段练习' : `已选 ${range.noteCount} 个音`,
-      rangeButtonText: range.isFullPiece ? '片段练习' : '重选片段',
-      startButtonText: range.isFullPiece ? '开始整首练习' : '开始这一段',
+      rangeInstruction: rangeCopy.rangeInstruction,
+      rangeButtonText: rangeCopy.rangeButtonText,
+      startButtonText: rangeCopy.startButtonText,
+      startHelperText: rangeCopy.startHelperText,
       progressText: `0 / ${range.noteCount}`,
       currentTargetText: this.piece.notes[range.startNoteIndex].label,
       activeNoteIndex: range.startNoteIndex,
