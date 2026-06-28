@@ -4,7 +4,11 @@
 .score-strip,
 .state-card,
 .score-head,
-.signal-row {
+.signal-row,
+.piece-meta-row,
+.action-hint,
+.action-copy,
+.action-footer {
   display: flex;
 }
 
@@ -13,8 +17,8 @@
   flex-direction: column;
   min-height: 100vh;
   width: 100vw;
-  padding: 12rpx 0 16rpx;
-  gap: 8rpx;
+  padding: 14rpx 0 0;
+  gap: 10rpx;
   overflow: hidden;
 }
 
@@ -22,80 +26,100 @@
 .score-strip,
 .state-card {
   flex-direction: column;
-  gap: 12rpx;
 }
 
 .practice-top {
   flex-shrink: 0;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16rpx;
-  padding: 0 24rpx;
+  gap: 18rpx;
+  padding: 0 26rpx 8rpx;
   width: 100%;
   box-sizing: border-box;
+  border-bottom: 1rpx solid rgba(216, 208, 192, 0.72);
 }
 
 .piece-copy {
   flex: 1;
   min-width: 0;
+  gap: 8rpx;
 }
 
-.eyebrow-row {
-  display: flex;
+.eyebrow-row,
+.piece-meta-row {
   align-items: center;
-  gap: 12rpx;
+  flex-wrap: wrap;
+  gap: 10rpx;
 }
 
 .eyebrow {
   color: var(--warning);
-  font-size: 16rpx;
-  font-weight: 700;
-  letter-spacing: 0.16em;
+  font-size: 17rpx;
+  font-weight: 800;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-.follow-badge {
+.mode-badge {
   display: inline-block;
   padding: 4rpx 12rpx;
   border-radius: 999rpx;
   border: 1rpx solid var(--line);
   color: var(--muted);
   font-size: 18rpx;
-  font-weight: 700;
-  background: transparent;
+  font-weight: 800;
+  background: rgba(245, 239, 227, 0.62);
 }
 
-.follow-badge.follow-active {
+.mode-badge.follow-active {
   color: var(--success);
-  border-color: var(--success);
+  border-color: rgba(94, 111, 78, 0.72);
   background: rgba(94, 111, 78, 0.08);
+}
+
+.mode-badge.gate-active {
+  color: var(--accent);
+  border-color: rgba(154, 77, 56, 0.72);
+  background: rgba(154, 77, 56, 0.08);
 }
 
 .title {
   color: var(--primary);
   font-family: "Songti SC", "STSong", Georgia, serif;
-  font-size: 28rpx;
+  font-size: 32rpx;
   font-weight: 800;
-  line-height: 1.22;
+  line-height: 1.18;
 }
 
-.section-title {
-  color: var(--primary);
-  font-family: "Songti SC", "STSong", Georgia, serif;
-  font-size: 22rpx;
-  font-weight: 800;
+.piece-meta-row text {
+  padding: 4rpx 12rpx;
+  border: 1rpx solid rgba(23, 22, 20, 0.12);
+  border-radius: 999rpx;
+  color: var(--muted);
+  font-size: 19rpx;
+  font-weight: 700;
+  background: rgba(251, 250, 244, 0.72);
 }
 
+.focus-tip,
 .phase-copy,
 .detected-pitch,
-.range-copy {
+.range-copy,
+.action-hint {
   color: var(--muted);
   font-size: 20rpx;
   line-height: 1.35;
 }
 
+.focus-tip {
+  display: block;
+  max-height: 58rpx;
+  overflow: hidden;
+}
+
 .beat-pill {
-  min-width: 132rpx;
+  flex-shrink: 0;
+  min-width: 120rpx;
   border-top: 2rpx solid var(--primary);
   border-bottom: 2rpx solid var(--primary);
   padding: 8rpx 0;
@@ -107,7 +131,7 @@
 }
 
 @keyframes beatPulse {
-  0% { transform: scale(1.15); opacity: 0.7; }
+  0% { transform: scale(1.12); opacity: 0.7; }
   100% { transform: scale(1); opacity: 1; }
 }
 
@@ -129,17 +153,48 @@
   flex: 1;
   min-height: 0;
   gap: 6rpx;
-  padding: 0;
   width: 100%;
   box-sizing: border-box;
 }
 
-.score-component {
-  flex: none;
-  height: calc(100vh - 342rpx);
-  min-height: 0;
+.score-head,
+.signal-row {
+  flex-shrink: 0;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14rpx;
+  padding: 0 22rpx;
+}
+
+.score-head view {
   display: flex;
-  overflow: hidden;
+  flex-direction: column;
+  gap: 2rpx;
+}
+
+.section-title {
+  color: var(--primary);
+  font-family: "Songti SC", "STSong", Georgia, serif;
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+.target-note,
+.detected-note,
+.progress {
+  color: var(--accent);
+  font-family: Georgia, "Songti SC", serif;
+  font-size: 25rpx;
+  font-weight: 800;
+}
+
+.detected-note {
+  color: var(--primary);
+  font-size: 22rpx;
+}
+
+.progress {
+  white-space: nowrap;
 }
 
 .formal-score-scroll {
@@ -152,9 +207,13 @@
   display: flex;
   flex-direction: column;
   gap: 14rpx;
-  padding: 4rpx 0 calc(112rpx + env(safe-area-inset-bottom));
+  padding: 4rpx 0 calc(374rpx + env(safe-area-inset-bottom));
   width: 100%;
   box-sizing: border-box;
+}
+
+.practice-page.running .formal-score-list {
+  padding-bottom: calc(132rpx + env(safe-area-inset-bottom));
 }
 
 .formal-score-stage {
@@ -164,8 +223,8 @@
   min-height: 188rpx;
   overflow: visible;
   background: #fffaf1;
-  border-top: 2rpx solid rgba(62, 47, 37, 0.14);
-  border-bottom: 2rpx solid rgba(62, 47, 37, 0.14);
+  border-top: 2rpx solid rgba(62, 47, 37, 0.12);
+  border-bottom: 2rpx solid rgba(62, 47, 37, 0.12);
 }
 
 .formal-score-stage.active-system {
@@ -229,7 +288,7 @@
 }
 
 .range-note-box.selectable {
-  background: rgba(177, 74, 43, 0.04);
+  background: rgba(177, 74, 43, 0.05);
 }
 
 .range-note-box.selected {
@@ -243,45 +302,244 @@
   box-shadow: 0 0 0 7rpx rgba(177, 74, 43, 0.1);
 }
 
+.score-component {
+  flex: none;
+  height: calc(100vh - 430rpx);
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+.practice-page.running .score-component {
+  height: calc(100vh - 252rpx);
+}
+
 .compact-score {
-  height: calc(100vh - 300rpx);
+  height: calc(100vh - 388rpx);
 }
 
-.score-head,
+.practice-page.running .compact-score {
+  height: calc(100vh - 228rpx);
+}
+
 .signal-row {
-  flex-shrink: 0;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 14rpx;
-  padding: 0 20rpx;
+  padding-bottom: calc(374rpx + env(safe-area-inset-bottom));
 }
 
-.score-head view {
+.practice-page.running .signal-row {
+  padding-bottom: calc(132rpx + env(safe-area-inset-bottom));
+}
+
+.practice-actions {
+  position: fixed;
+  right: 24rpx;
+  bottom: calc(18rpx + env(safe-area-inset-bottom));
+  left: 24rpx;
+  z-index: 100;
   display: flex;
   flex-direction: column;
-  gap: 2rpx;
+  gap: 14rpx;
+  padding: 22rpx 20rpx 20rpx;
+  border: 1rpx solid rgba(216, 208, 192, 0.88);
+  border-radius: 28rpx;
+  background: rgba(251, 250, 244, 0.97);
+  box-shadow: 0 -14rpx 32rpx rgba(62, 47, 37, 0.1);
 }
 
-.signal-row {
-  padding-bottom: calc(112rpx + env(safe-area-inset-bottom));
+.action-deck-head,
+.action-tags,
+.range-tools {
+  display: flex;
 }
 
-.target-note,
-.detected-note,
-.progress {
-  color: var(--accent);
-  font-family: Georgia, "Songti SC", serif;
+.action-deck-head {
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.action-copy {
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.action-label {
+  color: var(--warning);
+  font-size: 17rpx;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.action-title {
+  display: block;
+  color: var(--primary);
+  font-family: "Songti SC", "STSong", Georgia, serif;
+  font-size: 30rpx;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.action-range-chip {
+  flex-shrink: 0;
+  min-width: 154rpx;
+  padding: 10rpx 14rpx;
+  border: 1rpx solid rgba(23, 22, 20, 0.1);
+  border-radius: 20rpx;
+  background: rgba(245, 239, 227, 0.78);
+  text-align: right;
+}
+
+.action-range-chip.partial {
+  border-color: rgba(154, 77, 56, 0.32);
+  background: rgba(154, 77, 56, 0.08);
+}
+
+.action-range-chip.selecting {
+  border-color: rgba(146, 118, 74, 0.4);
+  background: rgba(146, 118, 74, 0.09);
+}
+
+.action-range-chip-label,
+.action-range-chip-value {
+  display: block;
+}
+
+.action-range-chip-label {
+  color: var(--muted);
+  font-size: 17rpx;
+  line-height: 1.2;
+}
+
+.action-range-chip-value {
+  margin-top: 4rpx;
+  color: var(--primary);
+  font-family: "Songti SC", "STSong", Georgia, serif;
   font-size: 24rpx;
   font-weight: 800;
+  line-height: 1.15;
 }
 
-.detected-note {
-  color: var(--primary);
-  font-size: 22rpx;
+.action-hint {
+  min-height: 0;
 }
 
-.progress {
-  white-space: nowrap;
+.mode-switch {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8rpx;
+  padding: 8rpx;
+  border: 1rpx solid rgba(216, 208, 192, 0.88);
+  border-radius: 22rpx;
+  background: rgba(245, 239, 227, 0.48);
+}
+
+.mode-option {
+  min-height: 72rpx;
+  padding: 0 10rpx;
+  border: 1rpx solid rgba(23, 22, 20, 0.14);
+  border-radius: 18rpx;
+  background: rgba(251, 250, 244, 0.92);
+  color: var(--muted);
+  font-size: 21rpx;
+  font-weight: 800;
+  line-height: 72rpx;
+}
+
+.mode-option.active {
+  background: var(--primary);
+  color: var(--ivory);
+  border-color: var(--primary);
+  box-shadow: 0 8rpx 16rpx rgba(23, 22, 20, 0.14);
+}
+
+.mode-option.active.follow {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.mode-option.active.gate {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.action-tags {
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.action-tag {
+  padding: 6rpx 14rpx;
+  border: 1rpx solid rgba(23, 22, 20, 0.1);
+  border-radius: 999rpx;
+  color: var(--muted);
+  font-size: 18rpx;
+  font-weight: 700;
+  background: rgba(251, 250, 244, 0.7);
+}
+
+.action-tag.accent-tag {
+  color: var(--accent);
+  border-color: rgba(154, 77, 56, 0.24);
+}
+
+.range-tools {
+  gap: 10rpx;
+}
+
+.practice-actions .primary-button,
+.practice-actions .secondary-button {
+  position: static;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  min-height: 66rpx;
+  padding: 0 20rpx;
+  line-height: 66rpx;
+  font-size: 24rpx;
+}
+
+.range-button {
+  flex: 1;
+}
+
+.range-button.selecting {
+  border-color: rgba(146, 118, 74, 0.36);
+  background: rgba(146, 118, 74, 0.08);
+}
+
+.practice-actions .range-reset {
+  flex: none;
+  width: 188rpx;
+  padding: 0 14rpx;
+}
+
+.action-footer {
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.action-footer-copy {
+  display: block;
+  color: var(--muted);
+  font-size: 20rpx;
+  line-height: 1.35;
+}
+
+.start-button {
+  min-height: 74rpx;
+  line-height: 74rpx;
+  font-size: 25rpx;
+}
+
+.start-button.waiting-range {
+  background: var(--warning);
+  color: var(--background);
 }
 
 .danger-outline {
@@ -302,51 +560,6 @@
   border-radius: 999rpx;
   font-size: 25rpx;
   line-height: 68rpx;
-}
-
-.primary-button {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  width: auto;
-  max-width: none;
-  margin: 0 32rpx;
-  margin-bottom: calc(24rpx + env(safe-area-inset-bottom));
-}
-
-.practice-actions {
-  position: fixed;
-  right: 28rpx;
-  bottom: calc(20rpx + env(safe-area-inset-bottom));
-  left: 28rpx;
-  z-index: 100;
-  display: grid;
-  grid-template-columns: 1fr auto 1.3fr;
-  gap: 8rpx;
-  align-items: center;
-}
-
-.practice-actions .primary-button,
-.practice-actions .secondary-button {
-  position: static;
-  right: auto;
-  bottom: auto;
-  left: auto;
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  min-height: 64rpx;
-  padding: 0 20rpx;
-  line-height: 64rpx;
-  font-size: 24rpx;
-}
-
-.practice-actions .range-reset {
-  grid-column: 2;
-  min-width: 76rpx;
-  padding: 0 14rpx;
 }
 
 .score-strip,

@@ -3,7 +3,7 @@ const {
   createRingBuffer,
 } = require('../../utils/audio-frame');
 const { detectPitchYin } = require('../../utils/pitch-yin');
-const { frequencyToNote, formatCentOffset } = require('../../utils/note');
+const { frequencyToNote } = require('../../utils/note');
 const { getPieceById } = require('../../utils/score-practice/piece-library');
 const {
   getScoreAssetCursor,
@@ -12,12 +12,45 @@ const {
 const { createTimeline, getActiveNoteIndex } = require('../../utils/score-practice/metronome-timeline');
 const { evaluateScorePractice } = require('../../utils/score-practice/score-evaluator');
 const { buildAdvice } = require('../../utils/score-practice/score-feedback');
+const { createPerformanceAligner } = require('../../utils/score-practice/performance-aligner');
+const { createPitchGateAligner } = require('../../utils/score-practice/pitch-gate-aligner');
 
 const SAMPLE_RATE = 44100;
 const ANALYSIS_WINDOW = 4096;
 const UI_INTERVAL_MS = 80;
 const ANALYSIS_INTERVAL_MS = 80;
 const RING_BUFFER_CAPACITY = ANALYSIS_WINDOW * 2;
+const PRACTICE_MODES = ['fixed', 'follow', 'pitch-gate'];
+
+function getPracticeModeCopy(mode) {
+  if (mode === 'pitch-gate') {
+    return {
+      label: '音准闯关',
+      statusText: '音准闯关：拉准当前音后才进入下一个音。',
+    };
+  }
+  if (mode === 'follow') {
+    return {
+      label: '跟随模式',
+      statusText: '跟随模式：高亮随演奏前进，可自由控制速度。',
+    };
+  }
+  return {
+    label: '固定节拍',
+    statusText: '固定节拍：按曲谱速度评测。',
+  };
+}
+
+function getPracticeModeState(mode) {
+  return {
+    practiceMode: mode,
+    followMode: mode === 'follow',
+    followModeText: getPracticeModeCopy(mode).label,
+    isFixedMode: mode === 'fixed',
+    isFollowPracticeMode: mode === 'follow',
+    isPitchGatePracticeMode: mode === 'pitch-gate',
+  };
+}
 
 function clampNoteIndex(piece, value, fallback) {
   const lastIndex = piece && Array.isArray(piece.notes) ? piece.notes.length - 1 : 0;
@@ -81,9 +114,15 @@ Page({
     showRangeMarkers: false,
     rangeSelectionMode: false,
     rangeInstruction: '可选择片段练习',
-    rangeButtonText: '选择片段',
+    rangeButtonText: '片段练习',
+    startButtonText: '开始整首练习',
+    focusTipText: '',
     followMode: false,
+    practiceMode: 'fixed',
     followModeText: '固定节拍',
+    isFixedMode: true,
+    isFollowPracticeMode: false,
+    isPitchGatePracticeMode: false,
   },
 
   onLoad(options) {
@@ -126,11 +165,13 @@ Page({
       piece: {
         id: piece.id,
         title: piece.title,
+        difficulty: piece.difficulty,
         bpm: piece.bpm,
         timeSignature: piece.timeSignature,
         keySignature: piece.keySignature,
         clef: piece.clef,
         staffDisplayRange: piece.staffDisplayRange,
+        estimatedDurationSec: piece.estimatedDurationSec,
         notes: piece.notes,
       },
       countInText: `预备拍 ${piece.countInBeats || 4} 拍`,
@@ -155,7 +196,9 @@ Page({
       hasPartialRange: !initialRange.isFullPiece,
       showRangeMarkers: !initialRange.isFullPiece,
       rangeInstruction: initialRange.isFullPiece ? '可选择片段练习' : `已选 ${initialRange.noteCount} 个音`,
-      rangeButtonText: '选择片段',
+      rangeButtonText: initialRange.isFullPiece ? '片段练习' : '重选片段',
+      startButtonText: initialRange.isFullPiece ? '开始整首练习' : '开始这一段',
+      focusTipText: (piece.focusTips || []).join(' · '),
       notePreview: piece.notes.slice(0, 8).map((note, index) => ({
         label: note.label,
         index,
@@ -182,14 +225,26 @@ Page({
     if (this.data.isRunning) {
       return;
     }
-    const followMode = !this.data.followMode;
-    this.setData({
-      followMode,
-      followModeText: followMode ? '跟随模式' : '固定节拍',
-      statusText: followMode
-        ? '跟随模式：高亮随演奏前进，可自由控制速度。'
-        : '固定节拍：按曲谱速度评测。',
-    });
+    const currentIndex = PRACTICE_MODES.indexOf(this.data.practiceMode);
+    const practiceMode = PRACTICE_MODES[(currentIndex + 1) % PRACTICE_MODES.length];
+    this.setPracticeMode(practiceMode);
+  },
+
+  setPracticeModeByTap(event) {
+    const mode = event && event.currentTarget && event.currentTarget.dataset
+      ? event.currentTarget.dataset.mode
+      : '';
+    if (PRACTICE_MODES.indexOf(mode) < 0 || this.data.isRunning) {
+      return;
+    }
+    this.setPracticeMode(mode);
+  },
+
+  setPracticeMode(practiceMode) {
+    const copy = getPracticeModeCopy(practiceMode);
+    this.setData(Object.assign({}, getPracticeModeState(practiceMode), {
+      statusText: copy.statusText,
+    }));
   },
 
   toggleRangeSelection() {
@@ -202,7 +257,8 @@ Page({
       rangeSelectionMode: true,
       showRangeMarkers: true,
       rangeInstruction: '请选择起点音符',
-      rangeButtonText: '重新选择',
+      rangeButtonText: '重新选段',
+      startButtonText: '先选起点',
     });
   },
 
@@ -222,7 +278,8 @@ Page({
       showRangeMarkers: false,
       rangeSelectionMode: false,
       rangeInstruction: '可选择片段练习',
-      rangeButtonText: '选择片段',
+      rangeButtonText: '片段练习',
+      startButtonText: '开始整首练习',
       progressText: `0 / ${range.noteCount}`,
       currentTargetText: this.piece.notes[range.startNoteIndex].label,
       activeNoteIndex: range.startNoteIndex,
@@ -267,6 +324,7 @@ Page({
         hasPartialRange: true,
         showRangeMarkers: true,
         rangeInstruction: '请选择截止音符',
+        startButtonText: '再选终点',
       });
       return;
     }
@@ -283,7 +341,8 @@ Page({
       showRangeMarkers: !range.isFullPiece,
       rangeSelectionMode: false,
       rangeInstruction: range.isFullPiece ? '可选择片段练习' : `已选 ${range.noteCount} 个音`,
-      rangeButtonText: '选择片段',
+      rangeButtonText: range.isFullPiece ? '片段练习' : '重选片段',
+      startButtonText: range.isFullPiece ? '开始整首练习' : '开始这一段',
       progressText: `0 / ${range.noteCount}`,
       currentTargetText: this.piece.notes[range.startNoteIndex].label,
       activeNoteIndex: range.startNoteIndex,
@@ -399,6 +458,9 @@ Page({
     this.shouldFinishOnStop = true;
     this.practiceStartTime = null;
     this.lastActiveSystemIndex = -1;
+    this.performanceAligner = null;
+    this.pitchGateAligner = null;
+    this.pitchGateComplete = false;
 
     const scoreRange = this.data.scoreRange || buildScoreRange(this.piece, 0, this.piece.notes.length - 1);
     this.timeline = createTimeline(this.piece, {
@@ -406,6 +468,12 @@ Page({
       startNoteIndex: scoreRange.startNoteIndex,
       endNoteIndex: scoreRange.endNoteIndex,
     });
+    if (this.isFollowMode()) {
+      this.performanceAligner = createPerformanceAligner(this.timeline);
+    }
+    if (this.isPitchGateMode()) {
+      this.pitchGateAligner = createPitchGateAligner(this.timeline);
+    }
 
     this.recorder.start({
       duration: 600000,
@@ -421,15 +489,28 @@ Page({
       phaseText: '预备拍',
       statusText: '预备拍进行中，请准备起弓。',
       beatText: `1 / ${this.timeline.countInBeats}`,
+      detectedText: '--',
+      detectedPitchText: '--',
     });
 
     this.startBeatTimer();
 
-    // F3: Follow mode allows extra time (2x) for users to play at their own pace.
-    const followMultiplier = this.data.followMode ? 2.5 : 1;
+    const fixedDurationMs =
+      this.timeline.preRollMs +
+      this.timeline.windows[this.timeline.windows.length - 1].expectedEndMs +
+      this.timeline.beatDurationMs;
+    const maxDurationMs = this.isPitchGateMode() ? 600000 : fixedDurationMs * (this.isFollowMode() ? 2.5 : 1);
     this.stopTimer = setTimeout(() => {
       this.stopPractice();
-    }, (this.timeline.preRollMs + this.timeline.windows[this.timeline.windows.length - 1].expectedEndMs + this.timeline.beatDurationMs) * followMultiplier);
+    }, maxDurationMs);
+  },
+
+  isFollowMode() {
+    return this.data.practiceMode === 'follow' || this.data.followMode === true;
+  },
+
+  isPitchGateMode() {
+    return this.data.practiceMode === 'pitch-gate';
   },
 
   playClick(isDownbeat) {
@@ -476,11 +557,18 @@ Page({
 
       const musicalBeat = tick - countInBeats;
       const isDownbeat = (musicalBeat - 1) % beatsPerMeasure === 0;
-      this.playClick(isDownbeat);
 
-      // F2: In follow mode, skip timeline-driven activeNoteIndex updates.
+      // F2: In follow-like modes, skip timeline-driven activeNoteIndex updates.
       // The highlight advances via pitch detection in handleFrame instead.
-      if (this.data.followMode) {
+      if (this.isFollowMode() || this.isPitchGateMode()) {
+        if (this.isPitchGateMode()) {
+          this.setData({
+            phaseText: '音准闯关',
+            beatText: '--',
+            beatPulse: !this.data.beatPulse,
+          });
+          return;
+        }
         this.setData({
           phaseText: '跟随中',
           beatText: `${musicalBeat} / ${totalBeats}`,
@@ -488,6 +576,8 @@ Page({
         });
         return;
       }
+
+      this.playClick(isDownbeat);
 
       // A5: Use ideal tick time for note lookup to avoid setInterval drift.
       const activeIndex = getActiveNoteIndex(this.timeline, idealTickTime);
@@ -531,7 +621,12 @@ Page({
 
     const timestamp = Date.now();
 
-    // R1: Run analysis on every frame (no throttling), but throttle UI updates.
+    if (timestamp - this.lastAnalysisAt < ANALYSIS_INTERVAL_MS) {
+      return;
+    }
+    this.lastAnalysisAt = timestamp;
+
+    // R1: Run pitch analysis at a fixed cadence, and throttle UI updates separately.
     const windowBuffer = this.ringBuffer.getRecent(ANALYSIS_WINDOW);
     if (windowBuffer.length < ANALYSIS_WINDOW) {
       return;
@@ -545,61 +640,32 @@ Page({
       timestamp,
     });
 
-    // F1: Follow mode — advance highlight based on detected pitch.
-    if (this.data.followMode && pitch.confidence >= 0.55 && pitch.frequency > 0) {
-      this.tryAdvanceByPitch(pitch.frequency, timestamp);
+    // F1: Follow mode — advance highlight from the same alignment model used by scoring.
+    if (this.isFollowMode() && this.performanceAligner) {
+      const state = this.performanceAligner.processFrame(this.pitchFrames[this.pitchFrames.length - 1]);
+      if (state.activeNoteIndex !== this.data.activeNoteIndex) {
+        this.advanceActiveNote(state.activeNoteIndex);
+      }
+    }
+
+    if (this.isPitchGateMode() && this.pitchGateAligner && !this.pitchGateComplete) {
+      const state = this.pitchGateAligner.processFrame(this.pitchFrames[this.pitchFrames.length - 1]);
+      if (state.activeNoteIndex !== this.data.activeNoteIndex) {
+        this.advanceActiveNote(state.activeNoteIndex);
+      }
+      if (state.complete) {
+        this.pitchGateComplete = true;
+        this.setData({
+          phaseText: '已达成',
+          statusText: '当前片段已完成，正在生成结果。',
+        });
+        this.stopPractice();
+      }
     }
 
     if (timestamp - this.lastUiAt >= UI_INTERVAL_MS) {
       this.lastUiAt = timestamp;
       this.updateDetectedUi(pitch);
-    }
-  },
-
-  tryAdvanceByPitch(detectedFreq, timestamp) {
-    if (!this.timeline || !this.data.isRunning || !this.piece) {
-      return;
-    }
-
-    // Only active after count-in.
-    const elapsedSinceStart = timestamp - this.timeline.startTimestamp;
-    if (elapsedSinceStart < 0) {
-      return;
-    }
-
-    const { frequencyToTargetCentOffset } = require('../../utils/note');
-    const windows = this.timeline.windows;
-    const currentSeqIndex = this.data.activeNoteIndex - this.timeline.range.startNoteIndex;
-
-    // Look ahead up to 2 notes (current + next) to find a match.
-    for (let i = 0; i <= 1; i += 1) {
-      const seqIdx = currentSeqIndex + i;
-      if (seqIdx < 0 || seqIdx >= windows.length) {
-        break;
-      }
-      const window = windows[seqIdx];
-      const centOffset = frequencyToTargetCentOffset(detectedFreq, window.note.targetFrequency);
-      if (centOffset === null) {
-        continue;
-      }
-
-      if (Math.abs(centOffset) <= window.pitchToleranceCent) {
-        // Require consecutive confirmations before advancing to avoid spurious jumps.
-        if (seqIdx > currentSeqIndex) {
-          if (this.pendingFollowIndex === window.noteIndex) {
-            this.pendingFollowConfirmCount = (this.pendingFollowConfirmCount || 0) + 1;
-          } else {
-            this.pendingFollowIndex = window.noteIndex;
-            this.pendingFollowConfirmCount = 1;
-          }
-          if (this.pendingFollowConfirmCount >= 2) {
-            this.advanceActiveNote(window.noteIndex);
-            this.pendingFollowIndex = null;
-            this.pendingFollowConfirmCount = 0;
-          }
-        }
-        break;
-      }
     }
   },
 
@@ -646,14 +712,33 @@ Page({
       ? Date.now() - this.practiceStartTime
       : this.timeline.windows[this.timeline.windows.length - 1].expectedEndMs;
 
-    // O2: Truncate pitchFrames to the last window's expected end time.
-    const lastWindowEnd = this.timeline.windows[this.timeline.windows.length - 1].expectedEndMs;
-    const lastFrameTime = this.timeline.startTimestamp + lastWindowEnd;
-    const trimmedFrames = this.pitchFrames.filter(
-      (frame) => frame.timestamp <= lastFrameTime
-    );
+    const isFollowMode = this.isFollowMode();
+    const isPitchGateMode = this.isPitchGateMode();
+    let evaluationFrames;
+    let performanceAlignment = null;
+    if (isFollowMode || isPitchGateMode) {
+      evaluationFrames = this.pitchFrames.filter(
+        (frame) => frame.timestamp >= this.timeline.startTimestamp
+      );
+      performanceAlignment = isPitchGateMode && this.pitchGateAligner
+        ? this.pitchGateAligner.finish()
+        : this.performanceAligner
+        ? this.performanceAligner.finish()
+        : null;
+    } else {
+      // O2: Truncate pitchFrames to the last window's expected end time.
+      const lastWindowEnd = this.timeline.windows[this.timeline.windows.length - 1].expectedEndMs;
+      const lastFrameTime = this.timeline.startTimestamp + lastWindowEnd;
+      evaluationFrames = this.pitchFrames.filter(
+        (frame) => frame.timestamp <= lastFrameTime
+      );
+    }
 
-    const evaluation = evaluateScorePractice(trimmedFrames, this.timeline);
+    const evaluation = evaluateScorePractice(
+      evaluationFrames,
+      this.timeline,
+      performanceAlignment ? { performanceAlignment } : {}
+    );
     const feedback = buildAdvice(evaluation.noteResults);
     const scoreRange = this.data.scoreRange || buildScoreRange(this.piece, 0, this.piece.notes.length - 1);
     const session = {
@@ -661,6 +746,14 @@ Page({
       pieceId: this.piece.id,
       pieceTitle: this.piece.title,
       scoreRange,
+      evaluationMode: isPitchGateMode ? 'pitch-gate' : isFollowMode ? 'performance-follow' : 'fixed-bpm',
+      performanceSummary: performanceAlignment
+        ? {
+          matchedCount: performanceAlignment.matchedCount,
+          activeNoteIndex: performanceAlignment.activeNoteIndex,
+          range: performanceAlignment.range,
+        }
+        : null,
       bpm: this.timeline.bpm,
       timeSignature: this.piece.timeSignature,
       summaryScores: Object.assign({}, evaluation.summaryScores),
@@ -698,5 +791,6 @@ Page({
     }
     this.pendingFollowIndex = null;
     this.pendingFollowConfirmCount = 0;
+    this.pitchGateComplete = false;
   },
 });

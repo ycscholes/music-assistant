@@ -1,4 +1,4 @@
-<view class="page practice-page">
+<view class="page practice-page {{isRunning ? 'running' : 'idle'}}">
   <block wx:if="{{empty}}">
     <view class="panel state-card">
       <text class="title">曲目不存在</text>
@@ -10,10 +10,16 @@
     <view class="practice-top">
       <view class="piece-copy">
         <view class="eyebrow-row">
-          <text class="eyebrow">{{piece.bpm}} BPM · {{piece.timeSignature}}</text>
-          <text class="follow-badge {{followMode ? 'follow-active' : ''}}" bindtap="toggleFollowMode">{{followModeText}}</text>
+          <text class="eyebrow">{{piece.difficulty}} · {{piece.keySignature}} · {{piece.timeSignature}}</text>
+          <text class="mode-badge {{!isFixedMode ? 'follow-active' : ''}} {{isPitchGatePracticeMode ? 'gate-active' : ''}}">{{followModeText}}</text>
         </view>
         <text class="title">{{piece.title}}</text>
+        <view wx:if="{{!isRunning}}" class="piece-meta-row">
+          <text>{{piece.bpm}} BPM</text>
+          <text>{{countInText}}</text>
+          <text>{{piece.estimatedDurationSec}}s</text>
+        </view>
+        <text wx:if="{{!isRunning && focusTipText}}" class="focus-tip">{{focusTipText}}</text>
       </view>
       <view class="beat-pill {{beatPulse ? 'pulse' : ''}}">
         <text class="meter-label">拍点</text>
@@ -24,7 +30,7 @@
     <view class="score-strip">
       <view class="score-head">
         <view>
-          <text class="section-title">目标谱面</text>
+          <text class="section-title">{{isRunning ? phaseText : '目标谱面'}}</text>
           <text class="target-note">{{currentTargetText}}</text>
           <text class="range-copy">{{rangeLabel}} · {{rangeInstruction}}</text>
         </view>
@@ -63,16 +69,46 @@
       </block>
       <staff-score wx:else class="score-component {{staffCompact ? 'compact-score' : ''}}" piece="{{piece}}" active-note-index="{{activeNoteIndex}}" layout-mode="systems" beats-per-line="{{8}}" beat-width="{{staffBeatWidth}}" staff-scale="{{staffScale}}" fullscreen="{{true}}" compact="{{staffCompact}}" selection-mode="{{rangeSelectionMode}}" range-visible="{{showRangeMarkers}}" range-start-note-index="{{rangeStartNoteIndex}}" range-end-note-index="{{rangeEndNoteIndex}}" bindselectnote="selectStaffNote" />
       <view class="signal-row">
-        <text class="phase-copy">{{phaseText}}</text>
+        <text class="phase-copy">{{statusText}}</text>
         <text class="detected-note">{{detectedText}}</text>
         <text class="detected-pitch">{{detectedPitchText}}</text>
       </view>
     </view>
 
     <view wx:if="{{!isRunning}}" class="practice-actions">
-      <button class="secondary-button range-button" hover-class="secondary-button-hover" bindtap="toggleRangeSelection">{{rangeButtonText}}</button>
-      <button wx:if="{{hasPartialRange || rangeSelectionMode}}" class="secondary-button range-reset" hover-class="secondary-button-hover" bindtap="resetScoreRange">整首</button>
-      <button class="primary-button start-button" hover-class="primary-button-hover" bindtap="startPractice">开始评测</button>
+      <view class="action-deck-head">
+        <view class="action-copy">
+          <text class="action-label">准备区</text>
+          <text class="action-title">{{followModeText}}</text>
+        </view>
+        <view class="action-range-chip {{rangeSelectionMode ? 'selecting' : ''}} {{hasPartialRange ? 'partial' : ''}}">
+          <text class="action-range-chip-label">练习范围</text>
+          <text class="action-range-chip-value">{{rangeLabel}}</text>
+        </view>
+      </view>
+      <view class="action-hint">
+        <text>{{statusText}}</text>
+      </view>
+      <view class="action-tags">
+        <text class="action-tag">{{piece.bpm}} BPM</text>
+        <text class="action-tag">{{countInText}}</text>
+        <text class="action-tag {{hasPartialRange ? 'accent-tag' : ''}}">
+          {{hasPartialRange ? scoreRange.noteCount + ' 个音' : '整首练习'}}
+        </text>
+      </view>
+      <view class="mode-switch">
+        <button class="mode-option {{isFixedMode ? 'active' : ''}}" data-mode="fixed" bindtap="setPracticeModeByTap">固定节拍</button>
+        <button class="mode-option {{isFollowPracticeMode ? 'active follow' : ''}}" data-mode="follow" bindtap="setPracticeModeByTap">跟随模式</button>
+        <button class="mode-option {{isPitchGatePracticeMode ? 'active gate' : ''}}" data-mode="pitch-gate" bindtap="setPracticeModeByTap">音准闯关</button>
+      </view>
+      <view class="range-tools">
+        <button class="secondary-button range-button {{rangeSelectionMode ? 'selecting' : ''}}" hover-class="secondary-button-hover" bindtap="toggleRangeSelection">{{rangeButtonText}}</button>
+        <button wx:if="{{hasPartialRange || rangeSelectionMode}}" class="secondary-button range-reset" hover-class="secondary-button-hover" bindtap="resetScoreRange">恢复整首</button>
+      </view>
+      <view class="action-footer">
+        <text class="action-footer-copy">{{rangeInstruction}}</text>
+        <button class="primary-button start-button {{rangeSelectionMode ? 'waiting-range' : ''}}" hover-class="primary-button-hover" bindtap="startPractice">{{startButtonText}}</button>
+      </view>
     </view>
     <button wx:else class="secondary-button danger-outline" hover-class="secondary-button-hover" bindtap="stopPractice">提前结束</button>
   </block>
