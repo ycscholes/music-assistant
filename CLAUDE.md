@@ -33,7 +33,6 @@ miniprogram/             # 小程序源代码
     target-notes.js       # 小提琴目标音定义
     tuning-status.js      # 调弦状态计算
   components/
-    cloudbase-badge/      # CloudBase 标识组件
   app.wxss                # 全局样式
   sitemap.json            # 搜索索引配置
 

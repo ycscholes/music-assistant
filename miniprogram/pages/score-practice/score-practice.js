@@ -21,6 +21,9 @@ const UI_INTERVAL_MS = 80;
 const ANALYSIS_INTERVAL_MS = 80;
 const RING_BUFFER_CAPACITY = ANALYSIS_WINDOW * 2;
 const PRACTICE_MODES = ['fixed', 'follow', 'pitch-gate'];
+const SCORE_SYSTEM_GAP_RPX = 14;
+const SCORE_LIST_PADDING_TOP_RPX = 4;
+const SCORE_LIST_RUNNING_PADDING_BOTTOM_RPX = 132;
 
 function getPracticeModeCopy(mode) {
   if (mode === 'pitch-gate') {
@@ -109,6 +112,92 @@ function getRangeSelectionCopy(range, options = {}) {
   };
 }
 
+function rpxToPx(rpx, windowWidthPx) {
+  return (Number(rpx || 0) * Number(windowWidthPx || 0)) / 750;
+}
+
+function getRenderedSystemHeight(system, windowWidthPx) {
+  const width = Number(system && system.width);
+  const height = Number(system && system.height);
+  if (!width || !height || !windowWidthPx) {
+    return 0;
+  }
+  return (height / width) * windowWidthPx;
+}
+
+function buildScoreScrollMetrics(systems, options = {}) {
+  const windowWidthPx = Number(options.windowWidthPx || 0);
+  const viewportHeightPx = Number(options.viewportHeightPx || 0);
+  const paddingTopPx = rpxToPx(SCORE_LIST_PADDING_TOP_RPX, windowWidthPx);
+  const gapPx = rpxToPx(SCORE_SYSTEM_GAP_RPX, windowWidthPx);
+  const paddingBottomPx = rpxToPx(SCORE_LIST_RUNNING_PADDING_BOTTOM_RPX, windowWidthPx);
+  const systemTops = [];
+  let contentHeightPx = paddingTopPx;
+
+  for (let i = 0; i < systems.length; i += 1) {
+    systemTops[i] = contentHeightPx;
+    contentHeightPx += getRenderedSystemHeight(systems[i], windowWidthPx);
+    if (i < systems.length - 1) {
+      contentHeightPx += gapPx;
+    }
+  }
+
+  contentHeightPx += paddingBottomPx;
+
+  return {
+    systemTops,
+    contentHeightPx,
+    maxScrollTopPx: Math.max(0, contentHeightPx - viewportHeightPx),
+  };
+}
+
+function getMidlineClampedScrollTop(systems, activeSystemIndex, options = {}) {
+  const viewportHeightPx = Number(options.viewportHeightPx || 0);
+  if (!systems || !systems.length || viewportHeightPx <= 0) {
+    return 0;
+  }
+
+  const metrics = buildScoreScrollMetrics(systems, options);
+  const safeIndex = Math.max(0, Math.min(systems.length - 1, Number(activeSystemIndex || 0)));
+  const activeSystem = systems[safeIndex];
+  const activeNoteBox = options.activeNoteBox || null;
+  const noteCenterPercent = activeNoteBox
+    ? Number(activeNoteBox.yPercent || 0) + Number(activeNoteBox.heightPercent || 0) / 2
+    : 0;
+  const noteOffsetPx = activeNoteBox
+    ? getRenderedSystemHeight(activeSystem, Number(options.windowWidthPx || 0)) * (noteCenterPercent / 100)
+    : 0;
+  const targetTopPx = Number(metrics.systemTops[safeIndex] || 0) + noteOffsetPx;
+  const desiredScrollTopPx = targetTopPx - viewportHeightPx / 2;
+  return Math.round(Math.max(0, Math.min(metrics.maxScrollTopPx, desiredScrollTopPx)));
+}
+
+function buildScoreAssetUpdate(pieceId, noteIndex, currentActiveSystemIndex, options = {}) {
+  const scoreAssetState = getScoreAssetCursor(pieceId, noteIndex);
+  const systemChanged = Boolean(options.forceSystemUpdate) ||
+    Number(scoreAssetState.activeSystemIndex) !== Number(currentActiveSystemIndex);
+  const update = {
+    activeNoteBox: scoreAssetState.activeNoteBox,
+  };
+
+  if (systemChanged) {
+    update.currentSystem = scoreAssetState.currentSystem;
+    update.previousSystemPreview = scoreAssetState.previousSystemPreview;
+    update.nextSystemPreview = scoreAssetState.nextSystemPreview;
+    update.activeSystemAnchor = scoreAssetState.activeSystemAnchor;
+    update.activeSystemIndex = scoreAssetState.activeSystemIndex;
+  }
+
+  if (typeof options.getScrollTopForActiveNote === 'function') {
+    update.activeScoreScrollTop = options.getScrollTopForActiveNote(
+      scoreAssetState.activeSystemIndex,
+      scoreAssetState.activeNoteBox
+    );
+  }
+
+  return update;
+}
+
 Page({
   data: {
     empty: false,
@@ -136,6 +225,7 @@ Page({
     activeNoteBox: null,
     activeSystemAnchor: '',
     activeSystemIndex: 0,
+    activeScoreScrollTop: 0,
     scoreRange: null,
     rangeStartNoteIndex: 0,
     rangeEndNoteIndex: 0,
@@ -181,12 +271,6 @@ Page({
     this.ringBuffer = null;
     this.pitchFrames = [];
     this.shouldFinishOnStop = false;
-
-    // R3: Pre-create audio contexts for metronome clicks.
-    this.clickHigh = wx.createInnerAudioContext();
-    this.clickHigh.src = '/audio/click-high.wav';
-    this.clickLow = wx.createInnerAudioContext();
-    this.clickLow.src = '/audio/click-low.wav';
 
     this.bindRecorder();
 
@@ -237,7 +321,7 @@ Page({
         index,
         active: index === 0,
       })),
-    });
+    }, () => this.refreshScoreScrollViewport());
   },
 
   preloadScoreImages(systems) {
@@ -252,6 +336,76 @@ Page({
         });
       }
     }
+  },
+
+  getScoreWindowWidth() {
+    if (this.scoreWindowWidthPx > 0) {
+      return this.scoreWindowWidthPx;
+    }
+
+    try {
+      const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
+      this.scoreWindowWidthPx = Number(info.windowWidth || 0);
+      this.scoreWindowHeightPx = Number(info.windowHeight || 0);
+    } catch (e) {
+      this.scoreWindowWidthPx = 375;
+      this.scoreWindowHeightPx = 667;
+    }
+
+    return this.scoreWindowWidthPx;
+  },
+
+  getScoreScrollViewportHeight() {
+    if (this.scoreScrollViewportHeightPx > 0) {
+      return this.scoreScrollViewportHeightPx;
+    }
+    if (!this.scoreWindowHeightPx) {
+      this.getScoreWindowWidth();
+    }
+    return Math.max(240, Math.round(Number(this.scoreWindowHeightPx || 667) * 0.52));
+  },
+
+  refreshScoreScrollViewport() {
+    if (!this.data.hasFormalScore) {
+      return;
+    }
+
+    wx.createSelectorQuery()
+      .in(this)
+      .select('.formal-score-scroll')
+      .boundingClientRect((rect) => {
+        if (rect && rect.height > 0) {
+          this.scoreScrollViewportHeightPx = rect.height;
+          this.syncActiveScoreScroll();
+        }
+      })
+      .exec();
+  },
+
+  getScoreScrollTopForActiveNote(systemIndex, activeNoteBox) {
+    return getMidlineClampedScrollTop(this.data.formalScoreSystems, systemIndex, {
+      windowWidthPx: this.getScoreWindowWidth(),
+      viewportHeightPx: this.getScoreScrollViewportHeight(),
+      activeNoteBox,
+    });
+  },
+
+  syncActiveScoreScroll() {
+    if (!this.data.hasFormalScore) {
+      return;
+    }
+    const activeScoreScrollTop = this.getScoreScrollTopForActiveNote(this.data.activeSystemIndex, this.data.activeNoteBox);
+    if (activeScoreScrollTop !== this.data.activeScoreScrollTop) {
+      this.setData({ activeScoreScrollTop });
+    }
+  },
+
+  buildActiveScoreAssetUpdate(noteIndex, options = {}) {
+    return buildScoreAssetUpdate(this.piece.id, noteIndex, this.data.activeSystemIndex, {
+      forceSystemUpdate: options.forceSystemUpdate,
+      getScrollTopForActiveNote: (systemIndex, activeNoteBox) =>
+        this.getScoreScrollTopForActiveNote(systemIndex, activeNoteBox),
+    });
   },
 
   toggleFollowMode() {
@@ -302,10 +456,9 @@ Page({
       return;
     }
     const range = buildScoreRange(this.piece, 0, this.piece.notes.length - 1);
-    const scoreAssetState = getScoreAssetCursor(this.piece.id, range.startNoteIndex);
     const rangeCopy = getRangeSelectionCopy(range);
     this.pendingRangeStartIndex = null;
-    this.setData({
+    this.setData(Object.assign({
       scoreRange: range,
       rangeStartNoteIndex: range.startNoteIndex,
       rangeEndNoteIndex: range.endNoteIndex,
@@ -320,13 +473,7 @@ Page({
       progressText: `0 / ${range.noteCount}`,
       currentTargetText: this.piece.notes[range.startNoteIndex].label,
       activeNoteIndex: range.startNoteIndex,
-      currentSystem: scoreAssetState.currentSystem,
-      previousSystemPreview: scoreAssetState.previousSystemPreview,
-      nextSystemPreview: scoreAssetState.nextSystemPreview,
-      activeNoteBox: scoreAssetState.activeNoteBox,
-      activeSystemAnchor: scoreAssetState.activeSystemAnchor,
-      activeSystemIndex: scoreAssetState.activeSystemIndex,
-    });
+    }, this.buildActiveScoreAssetUpdate(range.startNoteIndex, { forceSystemUpdate: true })));
   },
 
   selectScoreNote(event) {
@@ -369,10 +516,9 @@ Page({
     }
 
     const range = buildScoreRange(this.piece, this.pendingRangeStartIndex, safeIndex);
-    const scoreAssetState = getScoreAssetCursor(this.piece.id, range.startNoteIndex);
     const rangeCopy = getRangeSelectionCopy(range);
     this.pendingRangeStartIndex = null;
-    this.setData({
+    this.setData(Object.assign({
       scoreRange: range,
       rangeStartNoteIndex: range.startNoteIndex,
       rangeEndNoteIndex: range.endNoteIndex,
@@ -387,13 +533,7 @@ Page({
       progressText: `0 / ${range.noteCount}`,
       currentTargetText: this.piece.notes[range.startNoteIndex].label,
       activeNoteIndex: range.startNoteIndex,
-      currentSystem: scoreAssetState.currentSystem,
-      previousSystemPreview: scoreAssetState.previousSystemPreview,
-      nextSystemPreview: scoreAssetState.nextSystemPreview,
-      activeNoteBox: scoreAssetState.activeNoteBox,
-      activeSystemAnchor: scoreAssetState.activeSystemAnchor,
-      activeSystemIndex: scoreAssetState.activeSystemIndex,
-    });
+    }, this.buildActiveScoreAssetUpdate(range.startNoteIndex, { forceSystemUpdate: true })));
   },
 
   onUnload() {
@@ -402,14 +542,6 @@ Page({
     if (this.data.isRunning) {
       this.recorder.stop();
     }
-    if (this.clickHigh) {
-      this.clickHigh.destroy();
-      this.clickHigh = null;
-    }
-    if (this.clickLow) {
-      this.clickLow.destroy();
-      this.clickLow = null;
-    }
   },
 
   bindRecorder() {
@@ -417,7 +549,7 @@ Page({
       this.practiceStartTime = Date.now();
       this.setData({
         isRunning: true,
-        statusText: '预备拍进行中，请准备起弓。',
+        statusText: '预备拍进行中，请观察拍点准备起弓。',
       });
     });
 
@@ -528,11 +660,11 @@ Page({
     this.setData({
       rangeSelectionMode: false,
       phaseText: '预备拍',
-      statusText: '预备拍进行中，请准备起弓。',
+      statusText: '预备拍进行中，请观察拍点准备起弓。',
       beatText: `1 / ${this.timeline.countInBeats}`,
       detectedText: '--',
       detectedPitchText: '--',
-    });
+    }, () => this.refreshScoreScrollViewport());
 
     this.startBeatTimer();
 
@@ -554,54 +686,47 @@ Page({
     return this.data.practiceMode === 'pitch-gate';
   },
 
-  playClick(isDownbeat) {
-    // R3: Metronome click sound. High pitch for downbeat, low for others.
-    try {
-      if (isDownbeat && this.clickLow) {
-        this.clickLow.play();
-      } else if (this.clickHigh) {
-        this.clickHigh.play();
-      }
-    } catch (e) {
-      // Audio playback failures are non-critical.
-    }
-  },
-
   startBeatTimer() {
     const totalBeats = Math.ceil(this.timeline.windows[this.timeline.windows.length - 1].expectedEndMs / this.timeline.beatDurationMs);
     const countInBeats = this.timeline.countInBeats;
-    const beatsPerMeasure = this.timeline.signature.beatsPerMeasure || 4;
-    let tick = 0;
+    let lastCountInBeat = 0;
+    let lastMusicalBeat = 0;
 
-    // A5: Track ideal beat times to compensate for setInterval drift.
     const idealTickStart = this.timeline.createdAt;
     const beatMs = this.timeline.beatDurationMs;
+    const timelinePollMs = Math.min(UI_INTERVAL_MS, beatMs);
 
     this.beatTimer = setInterval(() => {
-      tick += 1;
-      // A5: Compute ideal time for this tick instead of relying on Date.now().
-      const idealTickTime = idealTickStart + tick * beatMs;
+      const now = Date.now();
 
-      if (tick <= countInBeats) {
-        // R4: Play click during count-in.
-        const isDownbeat = tick === 1;
-        this.playClick(isDownbeat);
-
+      if (now < this.timeline.startTimestamp) {
+        const countInBeat = Math.min(countInBeats, Math.floor((now - idealTickStart) / beatMs) + 1);
+        if (countInBeat === lastCountInBeat) {
+          return;
+        }
+        lastCountInBeat = countInBeat;
         this.setData({
           phaseText: '预备拍',
-          beatText: `${tick} / ${countInBeats}`,
-          statusText: tick === countInBeats ? '下一拍进入正式评测。' : '跟着拍点准备起弓。',
+          beatText: `${countInBeat} / ${countInBeats}`,
+          statusText: countInBeat === countInBeats ? '下一拍进入正式评测。' : '跟着视觉拍点准备起弓。',
           beatPulse: !this.data.beatPulse,
         });
         return;
       }
 
-      const musicalBeat = tick - countInBeats;
-      const isDownbeat = (musicalBeat - 1) % beatsPerMeasure === 0;
+      const elapsedPracticeMs = Math.max(0, now - this.timeline.startTimestamp);
+      const musicalBeat = Math.min(totalBeats, Math.floor(elapsedPracticeMs / beatMs) + 1);
+      const beatChanged = musicalBeat !== lastMusicalBeat;
+      if (beatChanged) {
+        lastMusicalBeat = musicalBeat;
+      }
 
       // F2: In follow-like modes, skip timeline-driven activeNoteIndex updates.
       // The highlight advances via pitch detection in handleFrame instead.
       if (this.isFollowMode() || this.isPitchGateMode()) {
+        if (!beatChanged) {
+          return;
+        }
         if (this.isPitchGateMode()) {
           this.setData({
             phaseText: '音准闯关',
@@ -618,10 +743,8 @@ Page({
         return;
       }
 
-      this.playClick(isDownbeat);
-
-      // A5: Use ideal tick time for note lookup to avoid setInterval drift.
-      const activeIndex = getActiveNoteIndex(this.timeline, idealTickTime);
+      // Poll the timeline at UI cadence so short notes can become active between beat ticks.
+      const activeIndex = getActiveNoteIndex(this.timeline, now);
       const currentNote = this.timeline.getWindowForNote(activeIndex);
       const sequenceProgress = currentNote ? currentNote.sequenceIndex + 1 : 0;
 
@@ -629,26 +752,21 @@ Page({
       const scoreAssetChanged = activeIndex !== this.data.activeNoteIndex;
       let scoreAssetUpdate = {};
       if (scoreAssetChanged) {
-        const scoreAssetState = getScoreAssetCursor(this.piece.id, activeIndex);
-        scoreAssetUpdate = {
-          currentSystem: scoreAssetState.currentSystem,
-          previousSystemPreview: scoreAssetState.previousSystemPreview,
-          nextSystemPreview: scoreAssetState.nextSystemPreview,
-          activeNoteBox: scoreAssetState.activeNoteBox,
-          activeSystemAnchor: scoreAssetState.activeSystemAnchor,
-          activeSystemIndex: scoreAssetState.activeSystemIndex,
-        };
+        scoreAssetUpdate = this.buildActiveScoreAssetUpdate(activeIndex);
+      }
+      if (!beatChanged && !scoreAssetChanged) {
+        return;
       }
 
       this.setData(Object.assign({
         phaseText: '评测中',
         beatText: `${musicalBeat} / ${totalBeats}`,
-        beatPulse: !this.data.beatPulse,
+        beatPulse: beatChanged ? !this.data.beatPulse : this.data.beatPulse,
         currentTargetText: currentNote ? currentNote.targetNote : '--',
         progressText: `${Math.min(sequenceProgress, this.timeline.windows.length)} / ${this.timeline.windows.length}`,
         activeNoteIndex: Math.max(0, activeIndex),
       }, scoreAssetUpdate));
-    }, beatMs);
+    }, timelinePollMs);
   },
 
   handleFrame(frameBuffer) {
@@ -716,18 +834,11 @@ Page({
     }
     const window = this.timeline.getWindowForNote(noteIndex);
     const sequenceProgress = window ? window.sequenceIndex + 1 : 0;
-    const scoreAssetState = getScoreAssetCursor(this.piece.id, noteIndex);
-    this.setData({
+    this.setData(Object.assign({
       activeNoteIndex: noteIndex,
       currentTargetText: window ? window.targetNote : '--',
       progressText: `${Math.min(sequenceProgress, this.timeline.windows.length)} / ${this.timeline.windows.length}`,
-      currentSystem: scoreAssetState.currentSystem,
-      previousSystemPreview: scoreAssetState.previousSystemPreview,
-      nextSystemPreview: scoreAssetState.nextSystemPreview,
-      activeNoteBox: scoreAssetState.activeNoteBox,
-      activeSystemAnchor: scoreAssetState.activeSystemAnchor,
-      activeSystemIndex: scoreAssetState.activeSystemIndex,
-    });
+    }, this.buildActiveScoreAssetUpdate(noteIndex)));
   },
 
   updateDetectedUi(pitch) {

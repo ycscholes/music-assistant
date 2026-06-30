@@ -2,7 +2,6 @@
   "pages": [
     "pages/index/index",
     "pages/score-list/score-list",
-    "pages/score-prepare/score-prepare",
     "pages/score-practice/score-practice",
     "pages/score-result/score-result",
     "pages/detect/detect",

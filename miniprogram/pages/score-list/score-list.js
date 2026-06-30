@@ -14,6 +14,7 @@ Page({
       timeSignature: piece.timeSignature,
       bpm: piece.bpm,
       estimatedDurationSec: piece.estimatedDurationSec,
+      noteCount: piece.notes ? piece.notes.length : 0,
       focusText: (piece.focusTips || []).join(' · '),
     }));
     this.setData({ pieces });
@@ -22,7 +23,7 @@ Page({
   openPiece(event) {
     const { id } = event.currentTarget.dataset;
     wx.navigateTo({
-      url: `/pages/score-prepare/score-prepare?pieceId=${id}`,
+      url: `/pages/score-practice/score-practice?pieceId=${id}`,
     });
   },
 });

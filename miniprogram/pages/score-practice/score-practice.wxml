@@ -37,7 +37,7 @@
         <text class="progress">{{progressText}}</text>
       </view>
       <block wx:if="{{hasFormalScore && formalScoreSystems.length}}">
-        <scroll-view class="formal-score-scroll" scroll-y enable-flex scroll-into-view="{{activeSystemAnchor}}" scroll-with-animation>
+        <scroll-view class="formal-score-scroll" scroll-y enable-flex scroll-top="{{activeScoreScrollTop}}" scroll-with-animation>
           <view class="formal-score-list">
             <view
               wx:for="{{formalScoreSystems}}"
@@ -57,11 +57,10 @@
               ></view>
               <view
                 wx:if="{{item.index === activeSystemIndex && activeNoteBox}}"
-                class="active-note-marker {{activeNoteBox.stemDirection === 'down' ? 'stem-down' : 'stem-up'}} {{activeNoteBox.long ? 'long-note' : ''}}"
+                class="active-note-marker"
                 style="left: {{activeNoteBox.xPercent}}%; top: {{activeNoteBox.yPercent}}%; width: {{activeNoteBox.widthPercent}}%; height: {{activeNoteBox.heightPercent}}%;"
               >
-                <view class="active-note-head"></view>
-                <view class="active-note-stem"></view>
+                <view class="active-note-playhead"></view>
               </view>
             </view>
           </view>
@@ -80,17 +79,14 @@
         <view class="action-copy">
           <text class="action-label">准备区</text>
           <text class="action-title">{{followModeText}}</text>
+          <text class="action-guidance-copy">{{statusText}}</text>
         </view>
         <view class="action-range-chip {{rangeSelectionMode ? 'selecting' : ''}} {{hasPartialRange ? 'partial' : ''}}">
           <text class="action-range-chip-label">练习范围</text>
           <text class="action-range-chip-value">{{rangeLabel}}</text>
         </view>
       </view>
-      <view class="action-guidance">
-        <text class="action-guidance-label">当前策略</text>
-        <text class="action-guidance-copy">{{statusText}}</text>
-      </view>
-      <view class="control-block">
+      <view class="mode-section">
         <view class="control-block-head">
           <text class="control-block-title">评测模式</text>
           <text class="control-block-meta">切换后立即生效</text>
@@ -110,23 +106,25 @@
           </button>
         </view>
       </view>
-      <view class="control-block">
-        <view class="control-block-head">
-          <text class="control-block-title">练习范围</text>
-          <text class="control-block-meta">{{hasPartialRange ? scoreRange.noteCount + ' 个音' : '整首'}}</text>
+      <view class="prep-tools">
+        <view class="range-panel">
+          <view class="control-block-head">
+            <text class="control-block-title">练习范围</text>
+            <text class="control-block-meta">{{hasPartialRange ? scoreRange.noteCount + ' 个音' : '整首'}}</text>
+          </view>
+          <view class="range-tools">
+            <button class="secondary-button range-button {{rangeSelectionMode ? 'selecting' : ''}}" hover-class="secondary-button-hover" bindtap="toggleRangeSelection">{{rangeButtonText}}</button>
+            <button wx:if="{{hasPartialRange || rangeSelectionMode}}" class="secondary-button range-reset" hover-class="secondary-button-hover" bindtap="resetScoreRange">恢复整首</button>
+          </view>
+          <text class="control-footnote">{{rangeInstruction}}</text>
         </view>
-        <view class="range-tools">
-          <button class="secondary-button range-button {{rangeSelectionMode ? 'selecting' : ''}}" hover-class="secondary-button-hover" bindtap="toggleRangeSelection">{{rangeButtonText}}</button>
-          <button wx:if="{{hasPartialRange || rangeSelectionMode}}" class="secondary-button range-reset" hover-class="secondary-button-hover" bindtap="resetScoreRange">恢复整首</button>
+        <view class="start-panel {{rangeSelectionMode ? 'is-pending' : ''}}">
+          <view class="start-copy">
+            <text class="start-label">开始评测</text>
+            <text class="start-caption">{{startHelperText}}</text>
+          </view>
+          <button class="primary-button start-button {{rangeSelectionMode ? 'waiting-range' : ''}}" hover-class="primary-button-hover" disabled="{{rangeSelectionMode}}" bindtap="startPractice">{{startButtonText}}</button>
         </view>
-        <text class="control-footnote">{{rangeInstruction}}</text>
-      </view>
-      <view class="start-panel {{rangeSelectionMode ? 'is-pending' : ''}}">
-        <view class="start-copy">
-          <text class="start-label">开始评测</text>
-          <text class="start-caption">{{startHelperText}}</text>
-        </view>
-        <button class="primary-button start-button {{rangeSelectionMode ? 'waiting-range' : ''}}" hover-class="primary-button-hover" disabled="{{rangeSelectionMode}}" bindtap="startPractice">{{startButtonText}}</button>
       </view>
     </view>
     <button wx:else class="secondary-button danger-outline" hover-class="secondary-button-hover" bindtap="stopPractice">提前结束</button>

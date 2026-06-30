@@ -1,5 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const { detectPitchYin } = require('../miniprogram/utils/pitch-yin');
 const { frequencyToNote, frequencyToTargetCentOffset } = require('../miniprogram/utils/note');
@@ -10,8 +12,20 @@ const { getTargetNoteByKey } = require('../miniprogram/utils/target-notes');
 const { getPieceById, listPieces } = require('../miniprogram/utils/score-practice/piece-library');
 const { createTimeline, getActiveNoteIndex } = require('../miniprogram/utils/score-practice/metronome-timeline');
 const { evaluateScorePractice } = require('../miniprogram/utils/score-practice/score-evaluator');
+const { buildPerformanceAlignment, createPerformanceAligner } = require('../miniprogram/utils/score-practice/performance-aligner');
+const { buildPitchGateAlignment, createPitchGateAligner } = require('../miniprogram/utils/score-practice/pitch-gate-aligner');
 const { buildAdvice } = require('../miniprogram/utils/score-practice/score-feedback');
 const { buildStaffScore, getStaffY, getLedgerLines, parsePitch } = require('../miniprogram/utils/score-practice/staff-layout');
+
+const vivaldiPdfAuditPath = path.join(__dirname, '../docs/sources/sheet-music/vivaldi-rv356-pdf-notes.audit.json');
+
+function readVivaldiPdfAudit() {
+  return JSON.parse(fs.readFileSync(vivaldiPdfAuditPath, 'utf-8'));
+}
+
+function flattenVivaldiAuditSpecs(audit) {
+  return audit.measures.flatMap((measure) => measure.notes);
+}
 
 function sineWave(frequency, sampleRate = 44100, seconds = 0.16) {
   const length = Math.floor(sampleRate * seconds);
@@ -64,6 +78,22 @@ test('violin target notes use accurate open string frequencies', () => {
   for (const [key, expectedFrequency] of cases) {
     assert.ok(Math.abs(getTargetNoteByKey(key).frequency - expectedFrequency) < 1e-9);
   }
+});
+
+test('piece library includes Shanghai Conservatory grade 4 Haydn Serenade', () => {
+  const piece = getPieceById('haydn_serenade_grade4');
+  assert.ok(piece);
+  assert.equal(piece.title, '小夜曲');
+  assert.equal(piece.composer, '海顿');
+  assert.equal(piece.examSystem, '上海音乐学院社会艺术水平考级');
+  assert.equal(piece.edition, '小提琴考级曲集 第2册 四级-六级');
+  assert.equal(piece.examLevel, '四级');
+  assert.equal(piece.bpm, 80);
+  assert.equal(piece.notes.length, 192);
+  assert.equal(piece.notes[0].label, 'E5');
+  assert.equal(piece.notes[0].durationBeat, 0.75);
+  assert.equal(piece.notes[piece.notes.length - 1].label, 'G4');
+  assert.equal(listPieces().some((item) => item.id === 'haydn_serenade_grade4'), true);
 });
 
 test('getTuningStatus highlights the in-tune range and tuning direction', () => {
@@ -181,6 +211,45 @@ test('score practice evaluator flags early notes inside timing tolerance window'
   assert.equal(result.noteResults[0].issueTags.includes('early'), true);
 });
 
+test('vivaldi generated score keeps PDF eighth and sixteenth note timing at 96 bpm', () => {
+  const piece = getPieceById('vivaldi_rv356_excerpt');
+  const timeline = createTimeline(piece, { createdAt: 1000 });
+  const eighthWindow = timeline.windows[0];
+  const sixteenthWindow = timeline.windows[6];
+  const audit = readVivaldiPdfAudit();
+
+  assert.ok(piece);
+  assert.equal(piece.renderMode, 'generated');
+  assert.equal(piece.bpm, 96);
+  assert.equal(piece.notes.length, audit.noteCount);
+  assert.equal(piece.notes[0].label, 'E5');
+  assert.equal(piece.notes[0].durationBeat, 0.5);
+  assert.equal(piece.notes[6].durationBeat, 0.25);
+  assert.deepEqual(audit.measures[0].notes[0], [76, 0, 0.5]);
+  assert.equal(timeline.beatDurationMs, 625);
+  assert.equal(eighthWindow.expectedDurationMs, 313);
+  assert.equal(sixteenthWindow.expectedDurationMs, 156);
+});
+
+test('vivaldi target notes match the PDF audit transcription', () => {
+  const piece = getPieceById('vivaldi_rv356_excerpt');
+  const audit = readVivaldiPdfAudit();
+  const auditSpecs = flattenVivaldiAuditSpecs(audit);
+  const pieceSpecs = piece.notes.map((note) => [note.midi, note.startBeat, note.durationBeat]);
+
+  assert.equal(audit.sourcePdf, 'docs/sources/sheet-music/vivaldi-rv356-yqlq-pdf-source.pdf');
+  assert.equal(audit.bpm, 96);
+  assert.equal(audit.measures.length, 81);
+  assert.equal(pieceSpecs.length, audit.noteCount);
+  assert.deepEqual(pieceSpecs, auditSpecs);
+
+  const checkedMeasures = new Set(audit.checkedMeasures);
+  for (const measure of [0, 1, 31, 34, 63, 64, 66, 69, 72, 75, 78, 79, 80]) {
+    assert.equal(checkedMeasures.has(measure), true);
+    assert.ok(audit.measures[measure].notes.length > 0);
+  }
+});
+
 test('score practice timeline can evaluate a selected note range', () => {
   const piece = getPieceById('twinkle_twinkle_mvp');
   const timeline = createTimeline(piece, {
@@ -225,6 +294,232 @@ test('score practice evaluator completion rate is scoped to selected range', () 
   assert.equal(result.noteResults[1].noteIndex, 8);
   assert.equal(result.noteResults[2].noteIndex, 9);
   assert.equal(result.summaryScores.completionRate, 0.67);
+});
+
+test('performance aligner advances monotonically and ignores silence', () => {
+  const piece = getPieceById('scale_combo_b_major_g_minor');
+  const timeline = createTimeline(piece, {
+    createdAt: 1000,
+    startNoteIndex: 0,
+    endNoteIndex: 3,
+  });
+  const aligner = createPerformanceAligner(timeline);
+  const first = timeline.windows[0];
+  const second = timeline.windows[1];
+
+  let state = aligner.processFrame({
+    frequency: first.note.targetFrequency,
+    confidence: 0.9,
+    timestamp: timeline.startTimestamp,
+  });
+  assert.equal(state.activeNoteIndex, first.noteIndex);
+
+  state = aligner.processFrame({
+    frequency: 0,
+    confidence: 0,
+    timestamp: timeline.startTimestamp + 900,
+  });
+  assert.equal(state.activeNoteIndex, first.noteIndex);
+
+  aligner.processFrame({
+    frequency: second.note.targetFrequency,
+    confidence: 0.9,
+    timestamp: timeline.startTimestamp + 1100,
+  });
+  state = aligner.processFrame({
+    frequency: second.note.targetFrequency,
+    confidence: 0.9,
+    timestamp: timeline.startTimestamp + 1220,
+  });
+  assert.equal(state.activeNoteIndex, second.noteIndex);
+
+  const alignment = aligner.finish();
+  assert.equal(alignment.windows[0].matched, true);
+  assert.equal(alignment.windows[1].matched, true);
+  assert.equal(alignment.windows[2].matched, false);
+  assert.equal(alignment.windows[2].skipped, true);
+});
+
+test('performance aligner segments repeated notes without silent auto-advance', () => {
+  const piece = getPieceById('twinkle_twinkle_mvp');
+  const timeline = createTimeline(piece, {
+    createdAt: 1000,
+    startNoteIndex: 0,
+    endNoteIndex: 2,
+  });
+  const aligner = createPerformanceAligner(timeline);
+  const c4 = timeline.windows[0].note.targetFrequency;
+  const g4 = timeline.windows[2].note.targetFrequency;
+
+  aligner.processFrame({ frequency: c4, confidence: 0.9, timestamp: timeline.startTimestamp });
+  aligner.processFrame({ frequency: c4, confidence: 0.9, timestamp: timeline.startTimestamp + 460 });
+  let state = aligner.processFrame({ frequency: c4, confidence: 0.9, timestamp: timeline.startTimestamp + 580 });
+  assert.equal(state.activeNoteIndex, 1);
+
+  aligner.processFrame({ frequency: 0, confidence: 0, timestamp: timeline.startTimestamp + 1100 });
+  state = aligner.getState();
+  assert.equal(state.activeNoteIndex, 1);
+
+  aligner.processFrame({ frequency: g4, confidence: 0.9, timestamp: timeline.startTimestamp + 1500 });
+  state = aligner.processFrame({ frequency: g4, confidence: 0.9, timestamp: timeline.startTimestamp + 1620 });
+  assert.equal(state.activeNoteIndex, 2);
+
+  const alignment = aligner.finish();
+  assert.equal(alignment.windows[0].matched, true);
+  assert.equal(alignment.windows[1].matched, true);
+  assert.equal(alignment.windows[2].matched, true);
+});
+
+test('performance scoring does not punish a complete slow take as late', () => {
+  const piece = getPieceById('scale_combo_b_major_g_minor');
+  const timeline = createTimeline(piece, {
+    createdAt: 1000,
+    startNoteIndex: 0,
+    endNoteIndex: 3,
+  });
+  const frames = [];
+  const slowBeatMs = timeline.beatDurationMs * 2;
+
+  timeline.windows.forEach((window, index) => {
+    const timestamp = timeline.startTimestamp + index * slowBeatMs;
+    frames.push({
+      frequency: window.note.targetFrequency,
+      confidence: 0.9,
+      timestamp,
+    });
+    frames.push({
+      frequency: window.note.targetFrequency,
+      confidence: 0.9,
+      timestamp: timestamp + 220,
+    });
+  });
+
+  const performanceAlignment = buildPerformanceAlignment(frames, timeline);
+  const result = evaluateScorePractice(frames, timeline, { performanceAlignment });
+
+  assert.equal(result.summaryScores.completionRate, 1);
+  assert.equal(result.noteResults.some((item) => item.issueTags.includes('late')), false);
+  assert.ok(result.summaryScores.totalScore > 80);
+});
+
+test('performance scoring still flags pitch errors inside followed windows', () => {
+  const piece = getPieceById('scale_combo_b_major_g_minor');
+  const timeline = createTimeline(piece, {
+    createdAt: 1000,
+    startNoteIndex: 0,
+    endNoteIndex: 0,
+  });
+  const window = timeline.windows[0];
+  const sharpFreq = window.note.targetFrequency * Math.pow(2, 35 / 1200);
+  const frames = [
+    { frequency: sharpFreq, confidence: 0.9, timestamp: timeline.startTimestamp },
+    { frequency: sharpFreq, confidence: 0.9, timestamp: timeline.startTimestamp + 220 },
+  ];
+  const performanceAlignment = buildPerformanceAlignment(frames, timeline, {
+    pitchToleranceCent: 50,
+  });
+  const result = evaluateScorePractice(frames, timeline, { performanceAlignment });
+
+  assert.equal(result.noteResults[0].matched, true);
+  assert.equal(result.noteResults[0].issueTags.includes('pitch-high'), true);
+});
+
+test('pitch gate aligner waits on the current note until pitch is in range', () => {
+  const piece = getPieceById('scale_combo_b_major_g_minor');
+  const timeline = createTimeline(piece, {
+    createdAt: 1000,
+    startNoteIndex: 0,
+    endNoteIndex: 2,
+  });
+  const aligner = createPitchGateAligner(timeline);
+  const first = timeline.windows[0];
+  const second = timeline.windows[1];
+  const sharpOutsideTolerance = first.note.targetFrequency * Math.pow(2, 45 / 1200);
+
+  let state = aligner.processFrame({
+    frequency: sharpOutsideTolerance,
+    confidence: 0.9,
+    timestamp: timeline.startTimestamp,
+  });
+  assert.equal(state.activeNoteIndex, first.noteIndex);
+
+  aligner.processFrame({
+    frequency: first.note.targetFrequency,
+    confidence: 0.9,
+    timestamp: timeline.startTimestamp + 80,
+  });
+  state = aligner.processFrame({
+    frequency: first.note.targetFrequency,
+    confidence: 0.9,
+    timestamp: timeline.startTimestamp + 240,
+  });
+  assert.equal(state.activeNoteIndex, second.noteIndex);
+});
+
+test('pitch gate aligner completes only after the final selected note is in tune', () => {
+  const piece = getPieceById('twinkle_twinkle_mvp');
+  const timeline = createTimeline(piece, {
+    createdAt: 1000,
+    startNoteIndex: 0,
+    endNoteIndex: 1,
+  });
+  const aligner = createPitchGateAligner(timeline);
+  const first = timeline.windows[0];
+  const second = timeline.windows[1];
+
+  aligner.processFrame({
+    frequency: first.note.targetFrequency,
+    confidence: 0.9,
+    timestamp: timeline.startTimestamp,
+  });
+  let state = aligner.processFrame({
+    frequency: first.note.targetFrequency,
+    confidence: 0.9,
+    timestamp: timeline.startTimestamp + 200,
+  });
+  assert.equal(state.activeNoteIndex, second.noteIndex);
+  assert.equal(state.complete, false);
+
+  aligner.processFrame({
+    frequency: second.note.targetFrequency,
+    confidence: 0.9,
+    timestamp: timeline.startTimestamp + 320,
+  });
+  state = aligner.processFrame({
+    frequency: second.note.targetFrequency,
+    confidence: 0.9,
+    timestamp: timeline.startTimestamp + 520,
+  });
+  assert.equal(state.activeNoteIndex, second.noteIndex);
+  assert.equal(state.complete, true);
+
+  const alignment = aligner.finish();
+  assert.equal(alignment.mode, 'pitch-gate');
+  assert.equal(alignment.matchedCount, 2);
+  assert.equal(alignment.windows[0].matched, true);
+  assert.equal(alignment.windows[1].matched, true);
+});
+
+test('pitch gate alignment can feed performance scoring', () => {
+  const piece = getPieceById('twinkle_twinkle_mvp');
+  const timeline = createTimeline(piece, {
+    createdAt: 1000,
+    startNoteIndex: 0,
+    endNoteIndex: 1,
+  });
+  const frames = [
+    { frequency: timeline.windows[0].note.targetFrequency, confidence: 0.9, timestamp: timeline.startTimestamp },
+    { frequency: timeline.windows[0].note.targetFrequency, confidence: 0.9, timestamp: timeline.startTimestamp + 200 },
+    { frequency: timeline.windows[1].note.targetFrequency, confidence: 0.9, timestamp: timeline.startTimestamp + 320 },
+    { frequency: timeline.windows[1].note.targetFrequency, confidence: 0.9, timestamp: timeline.startTimestamp + 520 },
+  ];
+  const performanceAlignment = buildPitchGateAlignment(frames, timeline);
+  const result = evaluateScorePractice(frames, timeline, { performanceAlignment });
+
+  assert.equal(result.summaryScores.completionRate, 1);
+  assert.equal(result.noteResults.length, 2);
+  assert.equal(result.noteResults[0].matched, true);
+  assert.equal(result.noteResults[1].matched, true);
 });
 
 test('score feedback aggregates repeated issues into advice text', () => {
@@ -358,7 +653,7 @@ test('twinkle piece is available and works with the score practice timeline', ()
   const pieces = listPieces();
   const piece = getPieceById('twinkle_twinkle_mvp');
 
-  assert.equal(pieces.length, 3);
+  assert.equal(pieces.length, 4);
   assert.ok(piece);
   assert.equal(piece.keySignature, 'C 大调');
   assert.equal(piece.clef, 'treble');

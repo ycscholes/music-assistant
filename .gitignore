@@ -12,3 +12,5 @@ project.private.config.json
 dist/
 build/
 miniprogram_npm/
+screenshots/
+tmp/

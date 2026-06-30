@@ -1,8 +1,8 @@
 <view class="page score-list-page">
   <view class="header">
-    <text class="eyebrow">固定 BPM 跟练</text>
-    <text class="title">选择练习曲</text>
-    <text class="subtitle">三首内置短句 · 本地五线谱 · 音准与节奏评测</text>
+    <text class="eyebrow">Score Practice</text>
+    <text class="title">曲谱评测</text>
+    <text class="subtitle">选择曲目后直接进入谱面练习，支持固定节拍、跟随模式与音准闯关。</text>
   </view>
 
   <view class="piece-list">
@@ -10,14 +10,22 @@
       <view class="piece-head">
         <view>
           <text class="piece-title">{{item.title}}</text>
-          <text class="piece-meta">{{item.difficulty}} · {{item.keySignature}} · {{item.timeSignature}} · {{item.bpm}} BPM</text>
+          <text class="piece-meta">{{item.difficulty}} · {{item.keySignature}} · {{item.timeSignature}}</text>
         </view>
         <view class="piece-action">
-          <text class="piece-duration">{{item.estimatedDurationSec}}s</text>
-          <text class="piece-link">准备</text>
+          <text class="piece-duration">{{item.bpm}}</text>
+          <text class="piece-unit">BPM</text>
         </view>
       </view>
+      <view class="piece-facts">
+        <text>{{item.noteCount}} 个音</text>
+        <text>{{item.estimatedDurationSec}}s</text>
+        <text>{{item.difficulty}}</text>
+      </view>
       <text class="piece-focus">{{item.focusText}}</text>
+      <view class="piece-link-row">
+        <text class="piece-link">开始练习</text>
+      </view>
     </view>
   </view>
 </view>

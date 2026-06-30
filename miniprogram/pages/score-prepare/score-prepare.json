@@ -1,6 +1,0 @@
-{
-  "navigationBarTitleText": "曲谱详情",
-  "usingComponents": {
-    "staff-score": "/components/staff-score/index"
-  }
-}

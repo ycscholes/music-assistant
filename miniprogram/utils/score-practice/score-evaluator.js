@@ -44,6 +44,55 @@ function collectWindowFrames(frames, timeline, options) {
   });
 }
 
+function collectPerformanceWindowFrames(frames, timeline, performanceAlignment, options) {
+  const alignmentWindows = performanceAlignment && Array.isArray(performanceAlignment.windows)
+    ? performanceAlignment.windows
+    : [];
+  const frameByTimestamp = new Map((frames || []).map((frame) => [frame.timestamp, frame]));
+  const items = alignmentWindows.map((alignedWindow) => {
+    const window = timeline.getWindowForNote(alignedWindow.noteIndex);
+    const alignedFrames = (alignedWindow.frames || [])
+      .map((frame) => frameByTimestamp.get(frame.timestamp) || frame)
+      .filter(
+        (frame) =>
+          frame &&
+          frame.confidence >= options.confidenceThreshold &&
+          typeof frame.frequency === 'number'
+      );
+    return {
+      window,
+      alignedWindow,
+      frames: alignedFrames,
+    };
+  }).filter((item) => item.window);
+
+  const matchedItems = items.filter(
+    (item) =>
+      item.alignedWindow.matched &&
+      item.alignedWindow.observedStartMs !== null &&
+      item.alignedWindow.observedEndMs !== null
+  );
+  const totalExpected = matchedItems.reduce(
+    (sum, item) => sum + Math.max(1, Number(item.window.expectedDurationMs || 0)),
+    0
+  );
+  const totalObserved = matchedItems.reduce((sum, item) => {
+    const observedMs = Math.max(
+      options.analysisIntervalMs,
+      Number(item.alignedWindow.observedEndMs) - Number(item.alignedWindow.observedStartMs) + options.analysisIntervalMs
+    );
+    return sum + observedMs;
+  }, 0);
+  const tempoFactor = totalExpected > 0
+    ? clamp(totalObserved / totalExpected, 0.4, 3)
+    : 1;
+
+  return {
+    items,
+    tempoFactor,
+  };
+}
+
 function buildNoteResult(item, timeline, options) {
   const { window, frames } = item;
   const frameOffsets = frames
@@ -133,6 +182,82 @@ function buildNoteResult(item, timeline, options) {
   };
 }
 
+function buildPerformanceNoteResult(item, tempoFactor, options) {
+  const { window, alignedWindow, frames } = item;
+  const frameOffsets = frames
+    .map((frame) => {
+      if (typeof frame.centOffset === 'number') {
+        return frame.centOffset;
+      }
+      const centOffset = frequencyToTargetCentOffset(frame.frequency, window.note.targetFrequency);
+      return Number.isFinite(centOffset) ? centOffset : null;
+    })
+    .filter((value) => value !== null);
+
+  if (!alignedWindow.matched || !frames.length || !frameOffsets.length) {
+    return {
+      targetNote: window.note.label,
+      noteIndex: window.noteIndex,
+      startBeat: window.note.startBeat,
+      durationBeat: window.note.durationBeat,
+      observedStartMs: alignedWindow.observedStartMs,
+      observedEndMs: alignedWindow.observedEndMs,
+      matched: false,
+      avgCentOffset: null,
+      timingOffsetMs: null,
+      holdRatio: 0,
+      confidence: 0,
+      issueTags: ['missed'],
+      noteScore: 0,
+    };
+  }
+
+  const observedDurationMs = Math.max(
+    options.analysisIntervalMs,
+    Number(alignedWindow.observedEndMs) - Number(alignedWindow.observedStartMs) + options.analysisIntervalMs
+  );
+  const expectedObservedDurationMs = Math.max(
+    1,
+    Number(window.expectedDurationMs || 0) * tempoFactor
+  );
+  const holdRatio = clamp(observedDurationMs / expectedObservedDurationMs, 0, 1.6);
+  const avgCentOffset = average(frameOffsets);
+  const avgConfidence = average(frames.map((frame) => frame.confidence)) || 0;
+  const absOffset = Math.abs(avgCentOffset);
+  const issueTags = [];
+
+  if (avgCentOffset > options.pitchToleranceCent) {
+    issueTags.push('pitch-high');
+  } else if (avgCentOffset < -options.pitchToleranceCent) {
+    issueTags.push('pitch-low');
+  }
+
+  if (holdRatio < options.holdRatioThreshold) {
+    issueTags.push('too-short');
+  }
+
+  const pitchScore = clamp(100 - absOffset * 2.0, 0, 100);
+  const holdPenalty = clamp((options.holdRatioThreshold - holdRatio) / options.holdRatioThreshold, 0, 1) * 30;
+  const noteScore = Math.round(clamp(pitchScore - holdPenalty, 0, 100));
+
+  return {
+    targetNote: window.note.label,
+    noteIndex: window.noteIndex,
+    startBeat: window.note.startBeat,
+    durationBeat: window.note.durationBeat,
+    observedStartMs: Math.round(alignedWindow.observedStartMs),
+    observedEndMs: Math.round(alignedWindow.observedEndMs),
+    matched: true,
+    avgCentOffset: Math.round(avgCentOffset),
+    timingOffsetMs: 0,
+    holdRatio: Number(Math.min(holdRatio, 1).toFixed(2)),
+    confidence: Number(avgConfidence.toFixed(2)),
+    issueTags,
+    noteScore,
+    detectedSummary: frequencyToNote(frames[0].frequency).label,
+  };
+}
+
 function summarizeNoteResults(noteResults) {
   const matchedResults = noteResults.filter((item) => item.matched);
   const completionRate = Number((matchedResults.length / noteResults.length).toFixed(2));
@@ -183,8 +308,21 @@ function summarizeNoteResults(noteResults) {
 
 function evaluateScorePractice(frames, timeline, overrides = {}) {
   const options = Object.assign({}, DEFAULT_OPTIONS, overrides);
-  const grouped = collectWindowFrames(frames || [], timeline, options);
-  const noteResults = grouped.map((item) => buildNoteResult(item, timeline, options));
+  let noteResults;
+  if (options.performanceAlignment) {
+    const grouped = collectPerformanceWindowFrames(
+      frames || [],
+      timeline,
+      options.performanceAlignment,
+      options
+    );
+    noteResults = grouped.items.map((item) =>
+      buildPerformanceNoteResult(item, grouped.tempoFactor, options)
+    );
+  } else {
+    const grouped = collectWindowFrames(frames || [], timeline, options);
+    noteResults = grouped.map((item) => buildNoteResult(item, timeline, options));
+  }
   const summaryScores = summarizeNoteResults(noteResults);
 
   return {

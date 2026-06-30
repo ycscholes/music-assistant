@@ -51,13 +51,13 @@
       "mock": null
     },
     {
-      "name": "score-prepare",
-      "path": "pages/score-prepare/score-prepare?pieceId=twinkle_twinkle_mvp",
+      "name": "score-practice",
+      "path": "pages/score-practice/score-practice?pieceId=twinkle_twinkle_mvp",
       "mock": null
     },
     {
-      "name": "score-practice",
-      "path": "pages/score-practice/score-practice?pieceId=twinkle_twinkle_mvp",
+      "name": "score-practice-rv356",
+      "path": "pages/score-practice/score-practice?pieceId=vivaldi_rv356_excerpt",
       "mock": null
     },
     {

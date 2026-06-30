@@ -7,7 +7,6 @@
 .signal-row,
 .piece-meta-row,
 .action-copy,
-.action-guidance,
 .control-block-head,
 .start-panel,
 .start-copy {
@@ -209,7 +208,7 @@
   display: flex;
   flex-direction: column;
   gap: 14rpx;
-  padding: 4rpx 0 calc(432rpx + env(safe-area-inset-bottom));
+  padding: 4rpx 0 calc(336rpx + env(safe-area-inset-bottom));
   width: 100%;
   box-sizing: border-box;
 }
@@ -242,44 +241,25 @@
 .active-note-marker {
   position: absolute;
   box-sizing: border-box;
-  z-index: 6;
+  z-index: 8;
   pointer-events: none;
+  overflow: visible;
 }
 
-.active-note-head {
+.active-note-playhead {
   position: absolute;
   left: 50%;
-  top: 50%;
-  width: 46%;
-  height: 24%;
-  border-radius: 50%;
-  border: 4rpx solid var(--success);
-  background: var(--success);
-  transform: translate(-50%, -50%) rotate(-18deg);
-}
-
-.active-note-marker.long-note .active-note-head {
-  width: 52%;
-  background: #fffaf1;
-}
-
-.active-note-stem {
-  position: absolute;
-  width: 5%;
-  min-width: 3rpx;
-  height: 68%;
+  top: -28%;
+  width: 7rpx;
+  min-width: 5rpx;
+  height: 156%;
+  min-height: 88rpx;
   border-radius: 999rpx;
-  background: var(--success);
-}
-
-.active-note-marker.stem-up .active-note-stem {
-  left: 66%;
-  top: 0;
-}
-
-.active-note-marker.stem-down .active-note-stem {
-  left: 22%;
-  top: 48%;
+  background: #D8261C;
+  box-shadow:
+    0 0 0 6rpx rgba(216, 38, 28, 0.12),
+    0 0 18rpx rgba(216, 38, 28, 0.38);
+  transform: translateX(-50%);
 }
 
 .range-note-box {
@@ -306,7 +286,7 @@
 
 .score-component {
   flex: none;
-  height: calc(100vh - 430rpx);
+  height: calc(100vh - 336rpx);
   min-height: 0;
   display: flex;
   overflow: hidden;
@@ -317,7 +297,7 @@
 }
 
 .compact-score {
-  height: calc(100vh - 388rpx);
+  height: calc(100vh - 318rpx);
 }
 
 .practice-page.running .compact-score {
@@ -325,7 +305,7 @@
 }
 
 .signal-row {
-  padding-bottom: calc(432rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(336rpx + env(safe-area-inset-bottom));
 }
 
 .practice-page.running .signal-row {
@@ -340,30 +320,31 @@
   z-index: 100;
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
-  padding: 24rpx 22rpx 22rpx;
+  gap: 12rpx;
+  padding: 18rpx 20rpx 18rpx;
   border: 1rpx solid rgba(216, 208, 192, 0.88);
-  border-radius: 30rpx;
+  border-radius: 26rpx;
   background: rgba(251, 250, 244, 0.98);
   box-shadow: 0 -16rpx 40rpx rgba(62, 47, 37, 0.1);
 }
 
 .action-deck-head,
-.range-tools {
+.range-tools,
+.prep-tools {
   display: flex;
 }
 
 .action-deck-head {
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 16rpx;
+  gap: 14rpx;
 }
 
 .action-copy {
   flex: 1;
   min-width: 0;
   flex-direction: column;
-  gap: 6rpx;
+  gap: 4rpx;
 }
 
 .action-label {
@@ -385,10 +366,10 @@
 
 .action-range-chip {
   flex-shrink: 0;
-  min-width: 154rpx;
-  padding: 10rpx 14rpx;
+  min-width: 142rpx;
+  padding: 8rpx 12rpx;
   border: 1rpx solid rgba(23, 22, 20, 0.1);
-  border-radius: 20rpx;
+  border-radius: 18rpx;
   background: rgba(245, 239, 227, 0.78);
   text-align: right;
 }
@@ -423,26 +404,20 @@
   line-height: 1.15;
 }
 
-.action-guidance,
-.control-block,
+.mode-section,
+.range-panel,
 .start-panel {
   border: 1rpx solid rgba(23, 22, 20, 0.09);
   background: rgba(245, 239, 227, 0.56);
 }
 
-.action-guidance,
+.mode-section,
+.range-panel,
 .start-panel,
 .control-block {
-  border-radius: 22rpx;
+  border-radius: 20rpx;
 }
 
-.action-guidance {
-  flex-direction: column;
-  gap: 6rpx;
-  padding: 14rpx 16rpx;
-}
-
-.action-guidance-label,
 .control-block-title,
 .start-label {
   color: var(--warning);
@@ -461,11 +436,12 @@
   line-height: 1.35;
 }
 
-.control-block {
+.mode-section,
+.range-panel {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
-  padding: 14rpx 16rpx 16rpx;
+  gap: 10rpx;
+  padding: 12rpx 14rpx 14rpx;
 }
 
 .control-block-head {
@@ -476,7 +452,7 @@
 
 .mode-switch {
   display: flex;
-  gap: 10rpx;
+  gap: 8rpx;
 }
 
 .mode-option {
@@ -485,14 +461,14 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 4rpx;
-  padding: 12rpx 10rpx;
-  min-height: 88rpx;
+  gap: 3rpx;
+  padding: 10rpx 10rpx;
+  min-height: 76rpx;
   border: 1rpx solid rgba(23, 22, 20, 0.14);
-  border-radius: 18rpx;
+  border-radius: 16rpx;
   background: rgba(251, 250, 244, 0.92);
   color: var(--muted);
-  text-align: left;
+  text-align: center;
 }
 
 .mode-option.active {
@@ -519,14 +495,14 @@
 
 .mode-option-title {
   color: currentColor;
-  font-size: 22rpx;
+  font-size: 21rpx;
   font-weight: 800;
   line-height: 1.15;
 }
 
 .mode-option-desc {
   color: rgba(117, 109, 97, 0.9);
-  font-size: 18rpx;
+  font-size: 17rpx;
   line-height: 1.2;
 }
 
@@ -537,7 +513,17 @@
 }
 
 .range-tools {
-  gap: 10rpx;
+  gap: 8rpx;
+}
+
+.prep-tools {
+  align-items: stretch;
+  gap: 12rpx;
+}
+
+.range-panel {
+  flex: 1;
+  min-width: 0;
 }
 
 .practice-actions .primary-button,
@@ -566,8 +552,8 @@
 
 .practice-actions .range-reset {
   flex: none;
-  width: 188rpx;
-  padding: 0 14rpx;
+  width: 164rpx;
+  padding: 0 10rpx;
 }
 
 .control-footnote {
@@ -575,9 +561,14 @@
 }
 
 .start-panel {
+  flex: 0 0 280rpx;
+  min-width: 280rpx;
+  flex-direction: column;
   align-items: center;
-  gap: 16rpx;
-  padding: 16rpx;
+  justify-content: center;
+  gap: 10rpx;
+  padding: 12rpx;
+  text-align: center;
 }
 
 .start-panel.is-pending {
@@ -586,18 +577,19 @@
 }
 
 .start-copy {
-  flex: 1;
+  flex: none;
   min-width: 0;
   flex-direction: column;
-  gap: 6rpx;
+  gap: 4rpx;
+  width: 100%;
 }
 
 .start-button {
-  flex-shrink: 0;
-  width: 236rpx !important;
-  min-width: 236rpx;
-  min-height: 74rpx;
-  line-height: 74rpx;
+  width: 100% !important;
+  max-width: 520rpx;
+  min-width: 0;
+  min-height: 72rpx;
+  line-height: 72rpx;
   font-size: 25rpx;
 }
 

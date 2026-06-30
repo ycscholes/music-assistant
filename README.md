@@ -15,8 +15,7 @@
 
 ## 曲谱评测显示规则
 
-- 曲谱准备页继续使用 `staff-score` 组件从本地 `notes` 数据渲染预览谱。
-- 曲谱评测页优先使用构建期生成的正式谱面 PNG 系统图，每行固定 8 个节拍，不在小程序运行时加载 VexFlow。
+- 曲谱评测页优先使用构建期生成的正式谱面 PNG 系统图，默认每行 8 个节拍；RV356 使用 VexFlow 按 PDF 细节生成一小节一行的正式谱面系统图，首行包含起拍 + 第 1 小节，不在小程序运行时加载 VexFlow。
 - 生成资产位于 `miniprogram/images/scores/<pieceId>/system-000.png`，元数据位于 `miniprogram/utils/score-practice/generated-score-assets.js`。
 - 当前评测音符通过元数据 `noteBoxes` 在图片上叠加高亮，随固定 BPM 时间线推进并自动切换当前系统。
 - 如果某曲目缺少生成资产，评测页会回退到原有 `staff-score` WXML 简化谱面。
@@ -33,7 +32,6 @@ miniprogram/
     result/     练习结果
     history/    练习记录
     score-list/ 曲谱列表
-    score-prepare/ 曲谱准备
     score-practice/ 曲谱评测
     score-result/ 曲谱评测结果
   components/

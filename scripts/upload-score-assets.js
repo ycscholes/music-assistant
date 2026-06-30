@@ -6,7 +6,7 @@ const PROJECT_ROOT = path.resolve(__dirname, '..');
 const GENERATED_ROOT = path.join(PROJECT_ROOT, 'generated/score-assets');
 const SCORE_IMAGE_ROOT = path.join(GENERATED_ROOT, 'images');
 const CLOUD_MANIFEST_PATH = path.join(GENERATED_ROOT, 'cloud-manifest.json');
-const CLOUD_ASSET_VERSION = 'formal-score-v2';
+const CLOUD_ASSET_VERSION = 'formal-score-v3';
 const DEFAULT_ENV_ID = 'brain-game-6gtx0hei4de22731';
 const LOCAL_ENV_PATH = path.join(PROJECT_ROOT, '.env.local');
 

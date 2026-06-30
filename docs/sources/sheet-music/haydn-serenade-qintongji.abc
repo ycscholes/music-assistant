@@ -1,0 +1,17 @@
+X:1
+T:Serenade
+C:Joseph Haydn
+L:1/8
+Q:1/4=80
+M:4/4
+K:C
+V:1 treble nm="Violin I"
+V:1
+"^Andante Cantabile"!p! (ue>f) | (ge) c4 (ge) | (af) c4 (fa) | (agfe) (edcB) |$ (Bc) G4 (g>g) | %5
+ (ga/)g/ fe (edcB) | (B2 c2) z2 (ue>f) | (ge) c4 (ge) | (af) c4 (fa) | agfe (edc!tenuto!B) |$ %10
+ (d/c/)B/c/ G4 g>g | (ga/g/) fe (edcB) | (B2 c2) z2 (uc>d) | (ecge) d4 | (dc)ec A3 c | %15
+!<(! ((B!<)!d'))!mf! d'4 (c'b) |$ (ba) a4 (bg) |!f!{/d} d'4 (c'_bag) |!f!{/^f} (d'3 a) (c'_bag) | %19
+!>(! (g2!>)! ^f2) z2!p! ud2 |{/d} d'2 d'>d' (e'd').c'.b |${/b} c'2 c'>c' c'4 | b2 ab (c'bag) | %23
+{/^f} a2 (d>d) d2 (b>c') | d'2 d'>d' (e'd').c'.b |{/b} c'2 c'>c' c'4 |$ b2 ab (c'ag^f) | %27
+ (^f2 g2) z2!p! (uB>c) | d2 cB (dcBA) | (Bg) g4 (Bc) | (ed)cB (cAG^F) |$ (G3 B) dcA^F | %32
+ (G3 B/d/) (cAG^F) | (^F2 G2) z2 |] %34

@@ -1,5 +1,15 @@
 const { saveSession } = require('../../utils/save-session');
 
+function getEvaluationModeText(mode) {
+  if (mode === 'pitch-gate') {
+    return '音准闯关';
+  }
+  if (mode === 'performance-follow') {
+    return '跟随模式';
+  }
+  return '固定节拍';
+}
+
 Page({
   data: {
     empty: false,
@@ -28,6 +38,12 @@ Page({
     const rangeTitle = session.scoreRange && !session.scoreRange.isFullPiece
       ? `${session.pieceTitle} · ${session.scoreRange.label}`
       : session.pieceTitle;
+    const resultMeta = [
+      getEvaluationModeText(session.evaluationMode),
+      `${session.bpm} BPM`,
+      session.timeSignature,
+      `${session.durationSec}s`,
+    ].filter(Boolean).join(' · ');
 
     const issueItems = session.noteResults
       .filter((item) => item.issueTags.length)
@@ -38,7 +54,7 @@ Page({
       }));
 
     this.setData({
-      session: Object.assign({}, session, { rangeTitle }),
+      session: Object.assign({}, session, { rangeTitle, resultMeta }),
       scoreItems,
       issueItems,
     });
